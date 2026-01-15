@@ -20,7 +20,7 @@ A command line tool that converts DOIs to complete BibTeX entries using the Cros
 ## Installation
 
 ```bash
-git clone https://github.com/yourusername/BibTexer.git
+git clone https://github.com/biterik/BibTexer.git
 cd BibTexer
 chmod +x doi2bib.py
 ```
