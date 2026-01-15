@@ -1,23 +1,64 @@
 # BibTexer
 
-A command line tool that converts DOIs to complete BibTeX entries using the CrossRef API.
+A cross-platform tool that converts DOIs to complete BibTeX entries using the CrossRef API.
+
+![BibTexer GUI](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-blue)
+![License](https://img.shields.io/badge/License-AGPL--3.0-green)
+![Python](https://img.shields.io/badge/Python-3.6%2B-yellow)
 
 ## Features
 
-- Fetches publication metadata from CrossRef API
-- Generates properly formatted BibTeX entries
-- Automatically determines entry type (article, inproceedings, book, etc.)
-- Creates citation keys from first author's name and publication year
-- Escapes special LaTeX characters
-- Copies result directly to clipboard (macOS)
-- Accepts DOIs in various formats (plain, `doi:` prefix, or full URL)
+- 🔍 Fetches publication metadata from CrossRef API
+- 📝 Generates properly formatted BibTeX entries
+- 🎨 Modern GUI with dark/light mode support
+- 💻 Cross-platform: Windows, macOS, and Linux
+- 📋 Automatic clipboard copy
+- 🔧 Command-line interface also available
+- ✨ Automatically determines entry type (article, inproceedings, book, etc.)
+- 🔑 Creates citation keys from first author's name and publication year
+- 🛡️ Escapes special LaTeX characters
 
-## Requirements
+## GUI Version
 
-- Python 3.6+
-- macOS (for clipboard support via `pbcopy`)
+### Running from Source
 
-## Installation
+```bash
+# Clone the repository
+git clone https://github.com/biterik/BibTexer.git
+cd BibTexer
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the GUI
+python bibtexer_gui.py
+```
+
+### Building Standalone Executables
+
+#### macOS
+```bash
+chmod +x build_macos.sh
+./build_macos.sh
+# Output: dist/BibTexer.app
+```
+
+#### Windows
+```batch
+build_windows.bat
+# Output: dist\BibTexer.exe
+```
+
+#### Linux
+```bash
+chmod +x build_linux.sh
+./build_linux.sh
+# Output: dist/BibTexer
+```
+
+## Command-Line Version
+
+### Installation
 
 ```bash
 git clone https://github.com/biterik/BibTexer.git
@@ -25,7 +66,7 @@ cd BibTexer
 chmod +x doi2bib.py
 ```
 
-## Usage
+### Usage
 
 ```bash
 ./doi2bib.py <doi>
@@ -63,6 +104,31 @@ chmod +x doi2bib.py
 }
 ```
 
+## Requirements
+
+### For running from source:
+- Python 3.6+
+- customtkinter (GUI version)
+
+### For clipboard support:
+- **macOS**: Built-in (uses `pbcopy`)
+- **Windows**: Built-in (uses `clip`)
+- **Linux**: `xclip` or `xsel` (install with `sudo apt install xclip`)
+
+## Project Structure
+
+```
+BibTexer/
+├── bibtexer_gui.py    # GUI application
+├── doi2bib.py         # Command-line tool
+├── requirements.txt   # Python dependencies
+├── build_macos.sh     # macOS build script
+├── build_windows.bat  # Windows build script
+├── build_linux.sh     # Linux build script
+├── LICENSE            # AGPL-3.0 license
+└── README.md          # This file
+```
+
 ## License
 
 This project is licensed under the GNU Affero General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
@@ -70,3 +136,7 @@ This project is licensed under the GNU Affero General Public License v3.0 - see 
 ## Author
 
 Erik Bitzek
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
