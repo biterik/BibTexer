@@ -2,6 +2,9 @@
 """
 BibTexer CLI - A command line tool to convert DOI or reference to BibTeX entry using CrossRef API
 
+Part of the MatWerk Scholar Toolbox - Developed within NFDI-MatWerk (https://nfdi-matwerk.de/)
+Copyright (c) 2026 Erik Bitzek
+
 Usage: 
   doi2bib.py <doi>                    # Lookup by DOI
   doi2bib.py --search "<reference>"   # Search by reference text
@@ -11,6 +14,10 @@ Examples:
   doi2bib.py --search "G. Thomas and M. J. Whelan, Phil. Mag. 4, 511 (1959)"
   doi2bib.py --search "PHYSICAL REVIEW MATERIALS 5, 083603 (2021)"
 """
+
+__version__ = "2.0.0"
+__author__ = "Erik Bitzek"
+__project__ = "MatWerk Scholar Toolbox"
 
 import sys
 import subprocess

@@ -2,10 +2,13 @@
 
 A cross-platform tool that converts DOIs and reference citations to complete BibTeX entries using the CrossRef API.
 
+**Part of the [MatWerk Scholar Toolbox](https://nfdi-matwerk.de/) - Developed within [NFDI-MatWerk](https://nfdi-matwerk.de/)**
+
 ![BibTexer GUI](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-blue)
 ![License](https://img.shields.io/badge/License-AGPL--3.0-green)
 ![Python](https://img.shields.io/badge/Python-3.6%2B-yellow)
 ![Version](https://img.shields.io/badge/Version-2.0.0-brightgreen)
+[![NFDI-MatWerk](https://img.shields.io/badge/NFDI-MatWerk-orange)](https://nfdi-matwerk.de/)
 
 ## Features
 
@@ -193,6 +196,29 @@ BibTexer/
 - Cross-platform GUI
 - Clipboard support
 - Build scripts for all platforms
+
+## Citation
+
+If you use BibTexer in your research, please cite it as:
+
+```bibtex
+@software{bitzek2026bibtexer,
+  author = {Bitzek, Erik},
+  title = {BibTexer: DOI and Reference to BibTeX Converter},
+  year = {2026},
+  version = {2.0.0},
+  url = {https://github.com/biterik/BibTexer},
+  note = {Part of the MatWerk Scholar Toolbox, developed within NFDI-MatWerk}
+}
+```
+
+## Acknowledgments
+
+BibTexer is part of the **MatWerk Scholar Toolbox** and was developed within **NFDI-MatWerk** (National Research Data Infrastructure for Materials Science and Engineering).
+
+[![NFDI-MatWerk](https://nfdi-matwerk.de/)](https://nfdi-matwerk.de/)
+
+This work was funded by the German Research Foundation (DFG) through the NFDI-MatWerk consortium.
 
 ## License
 

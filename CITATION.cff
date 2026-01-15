@@ -1,0 +1,42 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "BibTexer: DOI and Reference to BibTeX Converter"
+abstract: "A cross-platform tool that converts DOIs and reference citations to complete BibTeX entries using the CrossRef API. Part of the MatWerk Scholar Toolbox."
+authors:
+  - family-names: "Bitzek"
+    given-names: "Erik"
+    orcid: "https://orcid.org/0000-0000-0000-0000"
+version: "2.0.0"
+date-released: "2026-01-15"
+license: AGPL-3.0
+repository-code: "https://github.com/biterik/BibTexer"
+url: "https://github.com/biterik/BibTexer"
+keywords:
+  - bibtex
+  - doi
+  - citation
+  - crossref
+  - bibliography
+  - latex
+  - reference-management
+  - materials-science
+references:
+  - type: generic
+    title: "NFDI-MatWerk"
+    url: "https://nfdi-matwerk.de/"
+    notes: "BibTexer is part of the MatWerk Scholar Toolbox, developed within NFDI-MatWerk"
+identifiers:
+  - type: url
+    value: "https://github.com/biterik/BibTexer"
+    description: "GitHub repository"
+preferred-citation:
+  type: software
+  authors:
+    - family-names: "Bitzek"
+      given-names: "Erik"
+  title: "BibTexer: DOI and Reference to BibTeX Converter"
+  year: 2026
+  version: "2.0.0"
+  url: "https://github.com/biterik/BibTexer"
+  notes: "Part of the MatWerk Scholar Toolbox, developed within NFDI-MatWerk (https://nfdi-matwerk.de/). Funded by the German Research Foundation (DFG)."

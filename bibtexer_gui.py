@@ -659,7 +659,16 @@ class BibTexerApp(ctk.CTk):
             text="Convert references to BibTeX using CrossRef API",
             font=ctk.CTkFont(size=12)
         )
-        self.subtitle_label.pack(pady=(0, 10))
+        self.subtitle_label.pack(pady=(0, 5))
+        
+        # NFDI-MatWerk attribution
+        self.attribution_label = ctk.CTkLabel(
+            self.main_frame, 
+            text="Part of the MatWerk Scholar Toolbox • NFDI-MatWerk",
+            font=ctk.CTkFont(size=10),
+            text_color="gray"
+        )
+        self.attribution_label.pack(pady=(0, 10))
         
         # Create tabview
         self.tabview = ctk.CTkTabview(self.main_frame)
