@@ -1,20 +1,27 @@
 #!/usr/bin/env python3
 """
-doi2bib - A command line tool to convert DOI to BibTeX entry using CrossRef API
+BibTexer CLI - A command line tool to convert DOI or reference to BibTeX entry using CrossRef API
 
-Usage: doi2bib.py <doi>
+Usage: 
+  doi2bib.py <doi>                    # Lookup by DOI
+  doi2bib.py --search "<reference>"   # Search by reference text
 
-Example: doi2bib.py 10.1038/nature12373
+Examples: 
+  doi2bib.py 10.1038/nature12373
+  doi2bib.py --search "G. Thomas and M. J. Whelan, Phil. Mag. 4, 511 (1959)"
+  doi2bib.py --search "PHYSICAL REVIEW MATERIALS 5, 083603 (2021)"
 """
 
 import sys
 import subprocess
+import platform
 import urllib.request
 import urllib.parse
 import urllib.error
 import json
 import re
 import unicodedata
+from typing import Optional, Dict, List
 
 
 def normalize_text(text):
@@ -266,44 +273,318 @@ def convert_to_bibtex(data):
 
 
 def copy_to_clipboard(text):
-    """Copy text to clipboard using pbcopy (macOS)."""
+    """Copy text to clipboard using platform-specific method."""
+    system = platform.system()
     try:
-        process = subprocess.Popen(['pbcopy'], stdin=subprocess.PIPE)
-        process.communicate(text.encode('utf-8'))
+        if system == 'Darwin':  # macOS
+            process = subprocess.Popen(['pbcopy'], stdin=subprocess.PIPE)
+            process.communicate(text.encode('utf-8'))
+        elif system == 'Windows':
+            process = subprocess.Popen(['clip'], stdin=subprocess.PIPE, shell=True)
+            process.communicate(text.encode('utf-8'))
+        elif system == 'Linux':
+            try:
+                process = subprocess.Popen(['xclip', '-selection', 'clipboard'], stdin=subprocess.PIPE)
+                process.communicate(text.encode('utf-8'))
+            except FileNotFoundError:
+                process = subprocess.Popen(['xsel', '--clipboard', '--input'], stdin=subprocess.PIPE)
+                process.communicate(text.encode('utf-8'))
         return True
     except Exception:
         return False
 
 
-def main():
-    if len(sys.argv) != 2:
-        print("Usage: doi2bib.py <doi>", file=sys.stderr)
-        print("Example: doi2bib.py 10.1038/nature12373", file=sys.stderr)
-        sys.exit(1)
+# ============== Reference Parser ==============
+
+JOURNAL_ABBREVIATIONS = {
+    'phil. mag.': 'Philosophical Magazine',
+    'phil mag': 'Philosophical Magazine',
+    'phys. rev.': 'Physical Review',
+    'phys rev': 'Physical Review',
+    'phys. rev. lett.': 'Physical Review Letters',
+    'phys. rev. b': 'Physical Review B',
+    'phys. rev. materials': 'Physical Review Materials',
+    'j. appl. phys.': 'Journal of Applied Physics',
+    'j appl phys': 'Journal of Applied Physics',
+    'acta mater.': 'Acta Materialia',
+    'acta metall.': 'Acta Metallurgica',
+    'mater. sci. eng.': 'Materials Science and Engineering',
+    'int. j.': 'International Journal',
+    'j. mech. phys. solids': 'Journal of the Mechanics and Physics of Solids',
+    'comput. mater. sci.': 'Computational Materials Science',
+    'model. simul. mater. sci. eng.': 'Modelling and Simulation in Materials Science and Engineering',
+    'nature': 'Nature',
+    'science': 'Science',
+    'pnas': 'Proceedings of the National Academy of Sciences',
+    'proc. natl. acad. sci.': 'Proceedings of the National Academy of Sciences',
+}
+
+
+def parse_reference(text: str) -> Dict[str, Optional[str]]:
+    """Parse a reference string and extract components."""
+    result = {
+        'authors': None,
+        'year': None,
+        'title': None,
+        'journal': None,
+        'volume': None,
+        'page': None,
+        'query': text.strip()
+    }
     
-    doi = sys.argv[1]
+    text = text.strip()
+    if not text:
+        return result
     
-    # Clean up DOI - remove common prefixes
-    doi = doi.strip()
-    doi = re.sub(r'^https?://(dx\.)?doi\.org/', '', doi)
-    doi = re.sub(r'^doi:', '', doi, flags=re.IGNORECASE)
+    # Extract year
+    year_patterns = [r'\((\d{4})\)', r'\b(19\d{2}|20\d{2})\b']
+    for pattern in year_patterns:
+        match = re.search(pattern, text)
+        if match:
+            result['year'] = match.group(1)
+            break
+    
+    # Extract volume and page
+    vol_page_patterns = [
+        r'\b(\d+)\s*,\s*(\d+(?:[-–]\d+)?)\b',
+        r'\b(\d+)\s*:\s*(\d+(?:[-–]\d+)?)\b',
+    ]
+    for pattern in vol_page_patterns:
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            result['volume'] = match.group(1)
+            result['page'] = match.group(2)
+            break
+    
+    # Extract authors
+    author_patterns = [
+        r'^([A-Z]\.\s*(?:[A-Z]\.\s*)?[A-Za-z]+(?:\s+(?:and|&)\s+[A-Z]\.\s*(?:[A-Z]\.\s*)?[A-Za-z]+)*)',
+        r'^([A-Za-z]+\s+et\s+al\.?)',
+    ]
+    for pattern in author_patterns:
+        match = re.match(pattern, text)
+        if match:
+            result['authors'] = match.group(1).strip()
+            remaining = text[match.end():].strip()
+            if remaining.startswith(','):
+                remaining = remaining[1:].strip()
+            text = remaining
+            break
+    
+    # Check for journal abbreviations
+    text_lower = text.lower()
+    for abbrev, full_name in JOURNAL_ABBREVIATIONS.items():
+        if text_lower.startswith(abbrev) or abbrev in text_lower:
+            result['journal'] = full_name
+            break
+    
+    # Check for ALL CAPS journal name
+    if not result['journal']:
+        caps_match = re.match(r'^([A-Z][A-Z\s]+[A-Z])\b', text)
+        if caps_match:
+            journal_candidate = caps_match.group(1).strip()
+            if len(journal_candidate) > 5 and ' ' in journal_candidate:
+                result['journal'] = journal_candidate.title()
+    
+    # If no structured info found, treat as title
+    if not result['authors'] and not result['journal'] and not result['volume']:
+        result['title'] = text
+    
+    return result
+
+
+def search_crossref(query: Optional[str] = None, author: Optional[str] = None, 
+                    title: Optional[str] = None, journal: Optional[str] = None, 
+                    year: Optional[str] = None, rows: int = 10) -> List[Dict]:
+    """Search CrossRef API for references."""
+    base_url = "https://api.crossref.org/works"
+    params = {'rows': str(rows)}
+    
+    query_parts = []
+    if query:
+        query_parts.append(query)
+    if title:
+        query_parts.append(title)
+    if author:
+        params['query.author'] = author
+    if journal:
+        params['query.container-title'] = journal
+    
+    if query_parts:
+        params['query'] = ' '.join(query_parts)
+    
+    filters = []
+    if year:
+        filters.append(f'from-pub-date:{year}')
+        filters.append(f'until-pub-date:{year}')
+    if filters:
+        params['filter'] = ','.join(filters)
+    
+    url = f"{base_url}?{urllib.parse.urlencode(params)}"
+    
+    req = urllib.request.Request(url)
+    req.add_header('User-Agent', 'BibTexer/2.0 (mailto:user@example.com)')
+    req.add_header('Accept', 'application/json')
     
     try:
-        data = get_crossref_data(doi)
-        bibtex = convert_to_bibtex(data)
-        print(bibtex)
-        
-        # Copy to clipboard
-        if copy_to_clipboard(bibtex):
-            print("\n✓ Copied to clipboard!", file=sys.stderr)
-        else:
-            print("\n⚠ Could not copy to clipboard", file=sys.stderr)
-    except ValueError as e:
-        print(f"Error: {e}", file=sys.stderr)
-        sys.exit(1)
+        with urllib.request.urlopen(req, timeout=30) as response:
+            data = json.loads(response.read().decode('utf-8'))
+            return data['message'].get('items', [])
     except Exception as e:
-        print(f"Unexpected error: {e}", file=sys.stderr)
+        raise ValueError(f"Search failed: {e}")
+
+
+def format_search_result(item: Dict, index: int) -> str:
+    """Format a search result for CLI display."""
+    parts = [f"[{index}]"]
+    
+    if 'author' in item:
+        authors = []
+        for author in item['author'][:2]:
+            name = author.get('family', '')
+            if 'given' in author:
+                name = f"{author['given'][0]}. {name}"
+            authors.append(name)
+        if len(item['author']) > 2:
+            authors.append('et al.')
+        parts.append(', '.join(authors))
+    
+    year = get_year(item)
+    if year:
+        parts.append(f"({year})")
+    
+    if 'title' in item and item['title']:
+        title = item['title'][0] if isinstance(item['title'], list) else item['title']
+        if len(title) > 60:
+            title = title[:57] + '...'
+        parts.append(f'"{title}"')
+    
+    if 'container-title' in item and item['container-title']:
+        journal = item['container-title'][0] if isinstance(item['container-title'], list) else item['container-title']
+        parts.append(journal)
+    
+    return ' '.join(parts)
+
+
+def print_usage():
+    """Print usage information."""
+    print("BibTexer CLI - Convert DOI or reference to BibTeX", file=sys.stderr)
+    print("", file=sys.stderr)
+    print("Usage:", file=sys.stderr)
+    print("  doi2bib.py <doi>                    # Lookup by DOI", file=sys.stderr)
+    print('  doi2bib.py --search "<reference>"   # Search by reference text', file=sys.stderr)
+    print("", file=sys.stderr)
+    print("Examples:", file=sys.stderr)
+    print("  doi2bib.py 10.1038/nature12373", file=sys.stderr)
+    print('  doi2bib.py --search "G. Thomas and M. J. Whelan, Phil. Mag. 4, 511 (1959)"', file=sys.stderr)
+    print('  doi2bib.py --search "PHYSICAL REVIEW MATERIALS 5, 083603 (2021)"', file=sys.stderr)
+
+
+def main():
+    if len(sys.argv) < 2:
+        print_usage()
         sys.exit(1)
+    
+    # Check for search mode
+    if sys.argv[1] == '--search' or sys.argv[1] == '-s':
+        if len(sys.argv) < 3:
+            print("Error: --search requires a reference string", file=sys.stderr)
+            print_usage()
+            sys.exit(1)
+        
+        search_text = ' '.join(sys.argv[2:])
+        
+        try:
+            parsed = parse_reference(search_text)
+            
+            # Show parsed info
+            print("Searching CrossRef...", file=sys.stderr)
+            parsed_parts = []
+            if parsed['authors']:
+                parsed_parts.append(f"Authors: {parsed['authors']}")
+            if parsed['year']:
+                parsed_parts.append(f"Year: {parsed['year']}")
+            if parsed['journal']:
+                parsed_parts.append(f"Journal: {parsed['journal']}")
+            if parsed['title']:
+                parsed_parts.append(f"Title: {parsed['title'][:40]}...")
+            if parsed_parts:
+                print(f"Parsed: {' | '.join(parsed_parts)}", file=sys.stderr)
+            
+            results = search_crossref(
+                query=parsed['query'] if not parsed['title'] and not parsed['authors'] else None,
+                author=parsed['authors'],
+                title=parsed['title'],
+                journal=parsed['journal'],
+                year=parsed['year'],
+                rows=10
+            )
+            
+            if not results:
+                print("No results found.", file=sys.stderr)
+                sys.exit(1)
+            
+            if len(results) == 1:
+                # Single result, use directly
+                bibtex = convert_to_bibtex(results[0])
+                print(bibtex)
+                if copy_to_clipboard(bibtex):
+                    print("\n✓ Copied to clipboard!", file=sys.stderr)
+            else:
+                # Multiple results, show selection
+                print(f"\nFound {len(results)} results:", file=sys.stderr)
+                for i, item in enumerate(results):
+                    print(format_search_result(item, i), file=sys.stderr)
+                
+                print("\nEnter number to select (or 'q' to quit): ", file=sys.stderr, end='')
+                try:
+                    choice = input().strip()
+                    if choice.lower() == 'q':
+                        sys.exit(0)
+                    idx = int(choice)
+                    if 0 <= idx < len(results):
+                        bibtex = convert_to_bibtex(results[idx])
+                        print(bibtex)
+                        if copy_to_clipboard(bibtex):
+                            print("\n✓ Copied to clipboard!", file=sys.stderr)
+                    else:
+                        print("Invalid selection.", file=sys.stderr)
+                        sys.exit(1)
+                except (ValueError, EOFError):
+                    print("Invalid input.", file=sys.stderr)
+                    sys.exit(1)
+                    
+        except ValueError as e:
+            print(f"Error: {e}", file=sys.stderr)
+            sys.exit(1)
+        except Exception as e:
+            print(f"Unexpected error: {e}", file=sys.stderr)
+            sys.exit(1)
+    else:
+        # DOI mode
+        doi = sys.argv[1]
+        
+        # Clean up DOI - remove common prefixes
+        doi = doi.strip()
+        doi = re.sub(r'^https?://(dx\.)?doi\.org/', '', doi)
+        doi = re.sub(r'^doi:', '', doi, flags=re.IGNORECASE)
+        
+        try:
+            data = get_crossref_data(doi)
+            bibtex = convert_to_bibtex(data)
+            print(bibtex)
+            
+            # Copy to clipboard
+            if copy_to_clipboard(bibtex):
+                print("\n✓ Copied to clipboard!", file=sys.stderr)
+            else:
+                print("\n⚠ Could not copy to clipboard", file=sys.stderr)
+        except ValueError as e:
+            print(f"Error: {e}", file=sys.stderr)
+            sys.exit(1)
+        except Exception as e:
+            print(f"Unexpected error: {e}", file=sys.stderr)
+            sys.exit(1)
 
 
 if __name__ == "__main__":

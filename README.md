@@ -1,88 +1,105 @@
 # BibTexer
 
-A cross-platform tool that converts DOIs to complete BibTeX entries using the CrossRef API.
+A cross-platform tool that converts DOIs and reference citations to complete BibTeX entries using the CrossRef API.
 
 ![BibTexer GUI](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-blue)
 ![License](https://img.shields.io/badge/License-AGPL--3.0-green)
 ![Python](https://img.shields.io/badge/Python-3.6%2B-yellow)
+![Version](https://img.shields.io/badge/Version-2.0.0-brightgreen)
 
 ## Features
 
-- 🔍 Fetches publication metadata from CrossRef API
-- 📝 Generates properly formatted BibTeX entries
-- 🎨 Modern GUI with dark/light mode support
+### Core Features
+- 🔍 **DOI Lookup**: Direct conversion from DOI to BibTeX
+- 🔎 **Reference Search**: Find papers by author, title, journal, year - no DOI needed!
+- 📝 **Complete BibTeX**: Generates properly formatted entries with all metadata
+- 📋 **Clipboard Support**: Automatic copy to clipboard on all platforms
+- ✨ **Smart Entry Types**: Automatically determines @article, @inproceedings, @book, etc.
+- 🔑 **Citation Keys**: Auto-generates keys from first author + year
+- 🛡️ **LaTeX Safe**: Escapes special characters for LaTeX compatibility
+
+### Reference Search (New in v2.0!)
+Search CrossRef using partial reference information:
+- **Author citations**: `G. Thomas and M. J. Whelan, Phil. Mag. 4, 511 (1959)`
+- **Journal references**: `PHYSICAL REVIEW MATERIALS 5, 083603 (2021)`  
+- **Title search**: `Kinetic Theory of Dislocation Climb. I. General Models...`
+- Intelligently parses authors, year, journal, volume, and page numbers
+- Includes database of common journal abbreviations
+- Shows selection dialog when multiple matches are found
+
+### GUI Features
+- 🎨 Modern interface with dark/light mode
 - 💻 Cross-platform: Windows, macOS, and Linux
-- 📋 Automatic clipboard copy
-- 🔧 Command-line interface also available
-- ✨ Automatically determines entry type (article, inproceedings, book, etc.)
-- 🔑 Creates citation keys from first author's name and publication year
-- 🛡️ Escapes special LaTeX characters
+- 📑 Tabbed interface for DOI lookup and reference search
 
-## GUI Version
+## Installation
 
-### Running from Source
+### From Source
 
 ```bash
 # Clone the repository
 git clone https://github.com/biterik/BibTexer.git
 cd BibTexer
 
-# Install dependencies
+# Install dependencies (for GUI)
 pip install -r requirements.txt
 
-# Run the GUI
-python bibtexer_gui.py
-```
-
-### Building Standalone Executables
-
-#### macOS
-```bash
-chmod +x build_macos.sh
-./build_macos.sh
-# Output: dist/BibTexer.app
-```
-
-#### Windows
-```batch
-build_windows.bat
-# Output: dist\BibTexer.exe
-```
-
-#### Linux
-```bash
-chmod +x build_linux.sh
-./build_linux.sh
-# Output: dist/BibTexer
-```
-
-## Command-Line Version
-
-### Installation
-
-```bash
-git clone https://github.com/biterik/BibTexer.git
-cd BibTexer
+# Make CLI executable (Unix/macOS)
 chmod +x doi2bib.py
 ```
 
-### Usage
+### Requirements
+- Python 3.6+
+- customtkinter (GUI only, installed via requirements.txt)
+
+## Usage
+
+### GUI Application
 
 ```bash
-./doi2bib.py <doi>
+python bibtexer_gui.py
 ```
 
-### Examples
+The GUI provides two tabs:
+1. **DOI Lookup**: Enter a DOI to get its BibTeX entry
+2. **Reference Search**: Enter any citation information to search CrossRef
+
+### Command Line
 
 ```bash
-# Using plain DOI
+# DOI lookup
+./doi2bib.py <doi>
+
+# Reference search
+./doi2bib.py --search "<reference>"
+```
+
+#### CLI Examples
+
+```bash
+# DOI lookup - plain DOI
 ./doi2bib.py 10.1038/nature12373
 
-# Using full DOI URL
+# DOI lookup - full URL
 ./doi2bib.py https://doi.org/10.1038/nature12373
 
-# Using doi: prefix
-./doi2bib.py doi:10.1038/nature12373
+# Reference search - author citation
+./doi2bib.py --search "G. Thomas and M. J. Whelan, Phil. Mag. 4, 511 (1959)"
+
+# Reference search - journal reference  
+./doi2bib.py --search "PHYSICAL REVIEW MATERIALS 5, 083603 (2021)"
+
+# Reference search - title only
+./doi2bib.py --search "Kinetic Theory of Dislocation Climb"
+```
+
+When searching, if multiple results are found, you'll be prompted to select one:
+```
+Found 5 results:
+[0] G. Thomas, M. Whelan (1959) "Observations of precipitation..." Philosophical Magazine
+[1] P. Hirsch, J. Whelan (1960) "Dislocation contrast..." Philosophical Magazine
+...
+Enter number to select (or 'q' to quit): 0
 ```
 
 ### Sample Output
@@ -104,22 +121,54 @@ chmod +x doi2bib.py
 }
 ```
 
-## Requirements
+## Building Standalone Executables
 
-### For running from source:
-- Python 3.6+
-- customtkinter (GUI version)
+### macOS
+```bash
+chmod +x build_macos.sh
+./build_macos.sh
+# Output: dist/BibTexer.app
+```
 
-### For clipboard support:
-- **macOS**: Built-in (uses `pbcopy`)
-- **Windows**: Built-in (uses `clip`)
-- **Linux**: `xclip` or `xsel` (install with `sudo apt install xclip`)
+### Windows
+```batch
+build_windows.bat
+# Output: dist\BibTexer.exe
+```
+
+### Linux
+```bash
+chmod +x build_linux.sh
+./build_linux.sh
+# Output: dist/BibTexer
+```
+
+## Supported Entry Types
+
+BibTexer automatically detects and converts the following CrossRef types:
+
+| CrossRef Type | BibTeX Type |
+|---------------|-------------|
+| journal-article | @article |
+| proceedings-article | @inproceedings |
+| book-chapter | @incollection |
+| book, edited-book, monograph | @book |
+| report | @techreport |
+| dissertation | @phdthesis |
+| dataset, posted-content | @misc |
+
+## Clipboard Support
+
+Clipboard functionality works automatically on:
+- **macOS**: Uses `pbcopy` (built-in)
+- **Windows**: Uses `clip` (built-in)
+- **Linux**: Requires `xclip` or `xsel` (`sudo apt install xclip`)
 
 ## Project Structure
 
 ```
 BibTexer/
-├── bibtexer_gui.py    # GUI application
+├── bibtexer_gui.py    # GUI application with search feature
 ├── doi2bib.py         # Command-line tool
 ├── requirements.txt   # Python dependencies
 ├── build_macos.sh     # macOS build script
@@ -128,6 +177,22 @@ BibTexer/
 ├── LICENSE            # AGPL-3.0 license
 └── README.md          # This file
 ```
+
+## Changelog
+
+### Version 2.0.0
+- Added Reference Search feature - search by author, title, journal without DOI
+- Intelligent citation parser extracts metadata from various formats
+- Journal abbreviations database for better matching
+- Multiple result selection dialog
+- Tabbed GUI interface
+
+### Version 1.0.0
+- Initial release
+- DOI to BibTeX conversion
+- Cross-platform GUI
+- Clipboard support
+- Build scripts for all platforms
 
 ## License
 
