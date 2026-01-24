@@ -10,6 +10,7 @@ __version__ = "2.1.0"
 __author__ = "Erik Bitzek"
 __project__ = "MatWerk Scholar Toolbox"
 
+import sys
 import subprocess
 import platform
 import urllib.request
@@ -23,28 +24,49 @@ from typing import Optional, Dict, List
 
 # ============== Journal Abbreviations Database ==============
 
-JOURNAL_ABBREVIATIONS = {
-    'phil. mag.': 'Philosophical Magazine',
-    'phil mag': 'Philosophical Magazine',
-    'phys. rev.': 'Physical Review',
-    'phys rev': 'Physical Review',
-    'phys. rev. lett.': 'Physical Review Letters',
-    'phys. rev. b': 'Physical Review B',
-    'phys. rev. materials': 'Physical Review Materials',
-    'j. appl. phys.': 'Journal of Applied Physics',
-    'j appl phys': 'Journal of Applied Physics',
-    'acta mater.': 'Acta Materialia',
-    'acta metall.': 'Acta Metallurgica',
-    'mater. sci. eng.': 'Materials Science and Engineering',
-    'int. j.': 'International Journal',
-    'j. mech. phys. solids': 'Journal of the Mechanics and Physics of Solids',
-    'comput. mater. sci.': 'Computational Materials Science',
-    'model. simul. mater. sci. eng.': 'Modelling and Simulation in Materials Science and Engineering',
-    'nature': 'Nature',
-    'science': 'Science',
-    'pnas': 'Proceedings of the National Academy of Sciences',
-    'proc. natl. acad. sci.': 'Proceedings of the National Academy of Sciences',
-}
+import os
+
+def _load_journal_abbreviations() -> dict:
+    """
+    Load journal abbreviations from external JSON file.
+    Falls back to minimal embedded list if file not found.
+    """
+    # Try multiple locations for the JSON file
+    possible_paths = [
+        os.path.join(os.path.dirname(__file__), 'journal_abbreviations.json'),
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), 'journal_abbreviations.json'),
+        'journal_abbreviations.json',
+        # For PyInstaller bundles
+        os.path.join(getattr(sys, '_MEIPASS', ''), 'journal_abbreviations.json'),
+    ]
+    
+    for path in possible_paths:
+        try:
+            with open(path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                abbrevs = data.get('abbreviations', {})
+                # Filter out comment entries (keys starting with _)
+                return {k: v for k, v in abbrevs.items() if not k.startswith('_')}
+        except (FileNotFoundError, json.JSONDecodeError, TypeError):
+            continue
+    
+    # Fallback to minimal embedded list if file not found
+    return {
+        'nature': 'Nature',
+        'science': 'Science',
+        'pnas': 'Proceedings of the National Academy of Sciences',
+        'phys. rev.': 'Physical Review',
+        'phys. rev. lett.': 'Physical Review Letters',
+        'j. am. chem. soc.': 'Journal of the American Chemical Society',
+        'n. engl. j. med.': 'New England Journal of Medicine',
+        'lancet': 'The Lancet',
+        'cell': 'Cell',
+        'proc. natl. acad. sci.': 'Proceedings of the National Academy of Sciences',
+    }
+
+
+# Load abbreviations at module import time
+JOURNAL_ABBREVIATIONS = _load_journal_abbreviations()
 
 
 # ============== Text Processing ==============

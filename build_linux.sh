@@ -6,11 +6,12 @@ echo "Building BibTexer for Linux..."
 # Install dependencies
 pip install -r requirements.txt
 
-# Build with PyInstaller - include core module
+# Build with PyInstaller - include core module and data files
 pyinstaller --onefile \
     --windowed \
     --name "BibTexer" \
     --add-data "$(python -c 'import customtkinter; print(customtkinter.__path__[0])'):customtkinter" \
+    --add-data "journal_abbreviations.json:." \
     --hidden-import bibtexer_core \
     bibtexer_gui.py
 

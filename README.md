@@ -197,21 +197,50 @@ Clipboard functionality works automatically on:
 
 ```
 BibTexer/
-├── bibtexer_core.py   # Core library (API, parsing, conversion)
-├── bibtexer_gui.py    # GUI application (imports from core)
-├── doi2bib.py         # Command-line tool (imports from core)
-├── requirements.txt   # Python dependencies
-├── build_macos.sh     # macOS build script
-├── build_windows.bat  # Windows build script
-├── build_linux.sh     # Linux build script
+├── bibtexer_core.py          # Core library (API, parsing, conversion)
+├── bibtexer_gui.py           # GUI application (imports from core)
+├── doi2bib.py                # Command-line tool (imports from core)
+├── journal_abbreviations.json # Journal abbreviations database (400+ entries)
+├── requirements.txt          # Python dependencies
+├── build_macos.sh            # macOS build script
+├── build_windows.bat         # Windows build script
+├── build_linux.sh            # Linux build script
 ├── .github/
 │   └── workflows/
-│       └── build-release.yml  # Automated release builds
-├── LICENSE            # AGPL-3.0 license
-└── README.md          # This file
+│       └── build-release.yml # Automated release builds
+├── LICENSE                   # AGPL-3.0 license
+└── README.md                 # This file
 ```
 
 The codebase follows a modular design where `bibtexer_core.py` contains all shared functionality (CrossRef API, reference parsing, BibTeX conversion), while the GUI and CLI are thin frontend layers.
+
+## Journal Abbreviations
+
+BibTexer includes a comprehensive database of **400+ journal abbreviations** covering multiple scientific disciplines:
+
+- **Multidisciplinary**: Nature, Science, PNAS, etc.
+- **Physics**: Physical Review family, Journal of Applied Physics, etc.
+- **Materials Science**: Acta Materialia, Advanced Materials, etc.
+- **Chemistry**: JACS, Angewandte Chemie, Inorganic Chemistry, etc.
+- **Medicine**: NEJM, Lancet, JAMA, BMJ, etc.
+- **Biology**: Cell, Neuron, Immunity, Plant Cell, etc.
+- **Earth Science**: Geology, GRL, Nature Geoscience, etc.
+- **Engineering**: IEEE Transactions, AIAA Journal, etc.
+- **Computer Science**: ACM journals, JMLR, etc.
+- **Mathematics**: Annals of Mathematics, SIAM journals, etc.
+
+### Extending the Abbreviations
+
+The abbreviations are stored in `journal_abbreviations.json`. To add custom abbreviations:
+
+1. Open `journal_abbreviations.json` in a text editor
+2. Add entries to the `"abbreviations"` section:
+   ```json
+   "your abbrev.": "Full Journal Name",
+   ```
+3. Restart BibTexer
+
+Abbreviations are case-insensitive. Contributions to expand the database are welcome!
 
 ## Changelog
 

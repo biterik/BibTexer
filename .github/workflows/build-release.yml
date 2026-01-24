@@ -59,6 +59,7 @@ jobs:
         run: |
           pyinstaller --onefile --windowed --name "BibTexer" \
             --add-data "${{ steps.ctk_unix.outputs.path }}:customtkinter" \
+            --add-data "journal_abbreviations.json:." \
             --hidden-import bibtexer_core \
             bibtexer_gui.py
       
@@ -67,6 +68,7 @@ jobs:
         run: |
           pyinstaller --onefile --windowed --name "BibTexer" `
             --add-data "${{ steps.ctk_win.outputs.path }};customtkinter" `
+            --add-data "journal_abbreviations.json;." `
             --hidden-import bibtexer_core `
             bibtexer_gui.py
       
