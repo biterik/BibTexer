@@ -59,6 +59,7 @@ jobs:
         run: |
           pyinstaller --onefile --windowed --name "BibTexer" \
             --add-data "${{ steps.ctk_unix.outputs.path }}:customtkinter" \
+            --hidden-import bibtexer_core \
             bibtexer_gui.py
       
       - name: Build with PyInstaller (Windows)
@@ -66,6 +67,7 @@ jobs:
         run: |
           pyinstaller --onefile --windowed --name "BibTexer" `
             --add-data "${{ steps.ctk_win.outputs.path }};customtkinter" `
+            --hidden-import bibtexer_core `
             bibtexer_gui.py
       
       - name: Prepare macOS app for upload

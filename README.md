@@ -197,8 +197,9 @@ Clipboard functionality works automatically on:
 
 ```
 BibTexer/
-├── bibtexer_gui.py    # GUI application with search feature
-├── doi2bib.py         # Command-line tool
+├── bibtexer_core.py   # Core library (API, parsing, conversion)
+├── bibtexer_gui.py    # GUI application (imports from core)
+├── doi2bib.py         # Command-line tool (imports from core)
 ├── requirements.txt   # Python dependencies
 ├── build_macos.sh     # macOS build script
 ├── build_windows.bat  # Windows build script
@@ -209,6 +210,8 @@ BibTexer/
 ├── LICENSE            # AGPL-3.0 license
 └── README.md          # This file
 ```
+
+The codebase follows a modular design where `bibtexer_core.py` contains all shared functionality (CrossRef API, reference parsing, BibTeX conversion), while the GUI and CLI are thin frontend layers.
 
 ## Changelog
 
