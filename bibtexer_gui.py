@@ -29,6 +29,9 @@ from bibtexer_core import (
     parse_reference,
     format_search_result_long,
     copy_to_clipboard_tk,
+    download_or_open_paper,
+    open_url,
+    get_doi_url,
 )
 
 
@@ -160,8 +163,9 @@ class BibTexerApp(ctk.CTk):
         ctk.set_appearance_mode("system")
         ctk.set_default_color_theme("blue")
         
-        # Store current bibtex
+        # Store current bibtex and DOI
         self.current_bibtex = ""
+        self.current_doi = None
         
         # Create main frame
         self.main_frame = ctk.CTkFrame(self)
@@ -241,6 +245,28 @@ class BibTexerApp(ctk.CTk):
             font=ctk.CTkFont(size=13)
         )
         self.copy_button.pack(side="left", padx=(0, 10))
+        
+        self.oa_button = ctk.CTkButton(
+            self.button_frame, 
+            text="📄 Open Access",
+            command=self.download_open_access,
+            height=35,
+            font=ctk.CTkFont(size=13),
+            fg_color="#28a745",
+            width=120
+        )
+        self.oa_button.pack(side="left", padx=(0, 5))
+        
+        self.journal_button = ctk.CTkButton(
+            self.button_frame, 
+            text="🏛️ Journal",
+            command=self.open_journal_page,
+            height=35,
+            font=ctk.CTkFont(size=13),
+            fg_color="#0066cc",
+            width=100
+        )
+        self.journal_button.pack(side="left", padx=(0, 10))
         
         self.clear_button = ctk.CTkButton(
             self.button_frame, 
@@ -379,6 +405,7 @@ class BibTexerApp(ctk.CTk):
             data = get_crossref_data(doi)
             bibtex = convert_to_bibtex(data)
             self.current_bibtex = bibtex
+            self.current_doi = data.get('DOI', doi)  # Store the DOI
             
             self.after(0, lambda: self._update_output(bibtex))
             self.after(0, lambda: self.set_status("✓ Successfully converted!", "success"))
@@ -448,6 +475,7 @@ class BibTexerApp(ctk.CTk):
             if len(results) == 1:
                 bibtex = convert_to_bibtex(results[0])
                 self.current_bibtex = bibtex
+                self.current_doi = results[0].get('DOI')  # Store the DOI
                 self.after(0, lambda: self._update_output(bibtex))
                 self.after(0, lambda: self.set_status("✓ Found 1 matching reference!", "success"))
             else:
@@ -470,6 +498,7 @@ class BibTexerApp(ctk.CTk):
         if dialog.selected_item:
             bibtex = convert_to_bibtex(dialog.selected_item)
             self.current_bibtex = bibtex
+            self.current_doi = dialog.selected_item.get('DOI')  # Store the DOI
             self._update_output(bibtex)
             self.set_status("✓ Successfully converted selected reference!", "success")
     
@@ -496,12 +525,67 @@ class BibTexerApp(ctk.CTk):
         else:
             self.set_status("Nothing to copy", "warning")
     
+    def download_open_access(self):
+        """Try to download open access version via Unpaywall."""
+        if not self.current_doi:
+            self.set_status("No paper selected - convert a DOI or search first", "warning")
+            return
+        
+        self.oa_button.configure(state="disabled", text="Searching...")
+        self.set_status("Searching Unpaywall for open access version...", "info")
+        
+        # Run in thread to prevent GUI freeze
+        thread = threading.Thread(target=self._download_oa_thread)
+        thread.start()
+    
+    def _download_oa_thread(self):
+        """Download open access paper in background thread."""
+        try:
+            result = download_or_open_paper(
+                self.current_doi,
+                open_pdf=True,
+                fallback_browser=False  # Don't fall back - user can use Journal button
+            )
+            
+            if result['success']:
+                self.after(0, lambda: self.set_status(f"✓ {result['message']}", "success"))
+            elif result.get('pdf_url'):
+                # Found URL but couldn't download directly - open it
+                if open_url(result['pdf_url']):
+                    self.after(0, lambda: self.set_status(f"📄 Opened OA version in browser", "success"))
+                else:
+                    self.after(0, lambda: self.set_status(f"Found OA at: {result['pdf_url']}", "info"))
+            else:
+                self.after(0, lambda: self.set_status(
+                    "No open access version found. Try '🏛️ Journal' for institutional access.", 
+                    "warning"
+                ))
+        except Exception as e:
+            self.after(0, lambda: self.set_status(f"Error: {e}", "error"))
+        finally:
+            self.after(0, lambda: self.oa_button.configure(state="normal", text="📄 Open Access"))
+    
+    def open_journal_page(self):
+        """Open the journal/publisher page via DOI URL (for institutional access)."""
+        if not self.current_doi:
+            self.set_status("No paper selected - convert a DOI or search first", "warning")
+            return
+        
+        doi_url = get_doi_url(self.current_doi)
+        self.set_status(f"Opening {doi_url}...", "info")
+        
+        if open_url(doi_url):
+            self.set_status(f"🏛️ Opened journal page - use institutional login if needed", "success")
+        else:
+            self.set_status(f"Couldn't open browser. URL: {doi_url}", "error")
+    
     def clear_all(self):
         self.doi_entry.delete(0, "end")
         self.search_entry.delete("1.0", "end")
         self.output_text.delete("1.0", "end")
         self.parsed_label.configure(text="")
         self.current_bibtex = ""
+        self.current_doi = None
         self.set_status("", "info")
 
 

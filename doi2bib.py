@@ -28,6 +28,9 @@ from bibtexer_core import (
     parse_reference,
     format_search_result_short,
     copy_to_clipboard,
+    download_or_open_paper,
+    open_url,
+    get_doi_url,
 )
 
 
@@ -39,11 +42,21 @@ def print_usage():
     print("Usage:", file=sys.stderr)
     print("  doi2bib.py <doi>                    # Lookup by DOI", file=sys.stderr)
     print('  doi2bib.py --search "<reference>"   # Search by reference text', file=sys.stderr)
+    print("  doi2bib.py --oa <doi>               # Download open access PDF (via Unpaywall)", file=sys.stderr)
+    print("  doi2bib.py --journal <doi>          # Open journal page (institutional access)", file=sys.stderr)
+    print("", file=sys.stderr)
+    print("Options:", file=sys.stderr)
+    print("  --oa             Download open access PDF via Unpaywall", file=sys.stderr)
+    print("  --journal, -j    Open publisher page (use institutional access)", file=sys.stderr)
+    print("  --search, -s     Search by reference text instead of DOI", file=sys.stderr)
+    print("  --version, -v    Show version information", file=sys.stderr)
+    print("  --help, -h       Show this help message", file=sys.stderr)
     print("", file=sys.stderr)
     print("Examples:", file=sys.stderr)
     print("  doi2bib.py 10.1038/nature12373", file=sys.stderr)
+    print("  doi2bib.py --oa 10.1038/nature12373        # Try to download OA version", file=sys.stderr)
+    print("  doi2bib.py --journal 10.1038/nature12373   # Open Nature website", file=sys.stderr)
     print('  doi2bib.py --search "G. Thomas and M. J. Whelan, Phil. Mag. 4, 511 (1959)"', file=sys.stderr)
-    print('  doi2bib.py --search "PHYSICAL REVIEW MATERIALS 5, 083603 (2021)"', file=sys.stderr)
 
 
 def handle_search(search_text: str):
@@ -129,11 +142,59 @@ def handle_doi(doi: str):
             print("\n✓ Copied to clipboard!", file=sys.stderr)
         else:
             print("\n⚠ Could not copy to clipboard", file=sys.stderr)
+        
+        return data.get('DOI', doi)  # Return DOI for potential chaining
     except ValueError as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
     except Exception as e:
         print(f"Unexpected error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
+def handle_oa(doi: str):
+    """Handle open access download mode (via Unpaywall)."""
+    doi = clean_doi(doi)
+    
+    print("Searching Unpaywall for open access version...", file=sys.stderr)
+    
+    try:
+        result = download_or_open_paper(
+            doi,
+            open_pdf=True,
+            fallback_browser=False  # Don't fall back to DOI URL
+        )
+        
+        if result['success']:
+            print(f"✓ {result['message']}", file=sys.stderr)
+        elif result.get('pdf_url'):
+            # Found URL but couldn't download directly - open it
+            print(f"Found open access version, opening in browser...", file=sys.stderr)
+            if open_url(result['pdf_url']):
+                print(f"📄 Opened: {result['pdf_url']}", file=sys.stderr)
+            else:
+                print(f"Open access URL: {result['pdf_url']}", file=sys.stderr)
+        else:
+            print("No open access version found.", file=sys.stderr)
+            print(f"Try: doi2bib.py --journal {doi}", file=sys.stderr)
+            sys.exit(1)
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
+def handle_journal(doi: str):
+    """Handle journal page opening (for institutional access)."""
+    doi = clean_doi(doi)
+    doi_url = get_doi_url(doi)
+    
+    print(f"Opening journal page: {doi_url}", file=sys.stderr)
+    
+    if open_url(doi_url):
+        print("🏛️ Opened in browser - use institutional login if needed", file=sys.stderr)
+    else:
+        print(f"Could not open browser.", file=sys.stderr)
+        print(f"URL: {doi_url}", file=sys.stderr)
         sys.exit(1)
 
 
@@ -162,6 +223,32 @@ def main():
             sys.exit(1)
         search_text = ' '.join(sys.argv[2:])
         handle_search(search_text)
+    
+    # Check for open access download mode
+    elif sys.argv[1] == '--oa':
+        if len(sys.argv) < 3:
+            print("Error: --oa requires a DOI", file=sys.stderr)
+            print_usage()
+            sys.exit(1)
+        handle_oa(sys.argv[2])
+    
+    # Check for journal page mode
+    elif sys.argv[1] in ['--journal', '-j']:
+        if len(sys.argv) < 3:
+            print("Error: --journal requires a DOI", file=sys.stderr)
+            print_usage()
+            sys.exit(1)
+        handle_journal(sys.argv[2])
+    
+    # Legacy --open support (maps to --oa for backwards compatibility)
+    elif sys.argv[1] in ['--open', '-o']:
+        if len(sys.argv) < 3:
+            print("Error: --open requires a DOI", file=sys.stderr)
+            print_usage()
+            sys.exit(1)
+        print("Note: --open is deprecated, use --oa or --journal", file=sys.stderr)
+        handle_oa(sys.argv[2])
+    
     else:
         # DOI mode
         handle_doi(sys.argv[1])

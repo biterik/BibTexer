@@ -7,7 +7,7 @@ A cross-platform tool that converts DOIs and reference citations to complete Bib
 ![BibTexer GUI](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-blue)
 ![License](https://img.shields.io/badge/License-AGPL--3.0-green)
 ![Python](https://img.shields.io/badge/Python-3.6%2B-yellow)
-![Version](https://img.shields.io/badge/Version-2.1.0-brightgreen)
+![Version](https://img.shields.io/badge/Version-2.2.0-brightgreen)
 [![NFDI-MatWerk](https://img.shields.io/badge/NFDI-MatWerk-orange)](https://nfdi-matwerk.de/)
 
 ## Features
@@ -15,6 +15,8 @@ A cross-platform tool that converts DOIs and reference citations to complete Bib
 ### Core Features
 - 🔍 **DOI Lookup**: Direct conversion from DOI to BibTeX
 - 🔎 **Reference Search**: Find papers by author, title, journal, year - no DOI needed!
+- 📄 **Open Access**: Download free PDFs via Unpaywall (arXiv, bioRxiv, repositories)
+- 🏛️ **Journal Access**: Open publisher page for institutional/subscription access
 - 📝 **Complete BibTeX**: Generates properly formatted entries with all metadata
 - 📋 **Clipboard Support**: Automatic copy to clipboard on all platforms
 - ✨ **Smart Entry Types**: Automatically determines @article, @inproceedings, @book, etc.
@@ -99,6 +101,9 @@ The GUI provides two tabs:
 
 # Reference search
 ./doi2bib.py --search "<reference>"
+
+# Download/open paper
+./doi2bib.py --open <doi>
 ```
 
 #### CLI Examples
@@ -118,6 +123,13 @@ The GUI provides two tabs:
 
 # Reference search - title only
 ./doi2bib.py --search "Kinetic Theory of Dislocation Climb"
+
+# Download open access PDF (via Unpaywall)
+./doi2bib.py --oa 10.1038/nature12373
+
+# Open journal page (for institutional access)
+./doi2bib.py --journal 10.1038/nature12373
+./doi2bib.py -j 10.1038/nature12373
 ```
 
 When searching, if multiple results are found, you'll be prompted to select one:
@@ -186,6 +198,37 @@ BibTexer automatically detects and converts the following CrossRef types:
 | dissertation | @phdthesis |
 | dataset, posted-content | @misc |
 
+## Get Paper Feature
+
+BibTexer provides two ways to access papers:
+
+### 📄 Open Access (via Unpaywall)
+- Click **"📄 Open Access"** (GUI) or use `--oa` (CLI)
+- Searches [Unpaywall](https://unpaywall.org/) for legal open access versions
+- If found, downloads PDF to your **Downloads folder** and opens it
+- Sources include: preprint servers (arXiv, bioRxiv), institutional repositories, publisher OA
+
+### 🏛️ Journal (Institutional Access)
+- Click **"🏛️ Journal"** (GUI) or use `--journal` (CLI)
+- Opens the publisher's page via DOI URL
+- Use your **institutional login** or campus network for access
+- Works with any subscription your institution has
+
+### CLI Examples
+
+```bash
+# Try to download open access version
+./doi2bib.py --oa 10.1038/nature12373
+
+# Open publisher page (for institutional access)
+./doi2bib.py --journal 10.1038/nature12373
+./doi2bib.py -j 10.1038/nature12373   # short form
+```
+
+### Privacy Note
+
+The Unpaywall API query includes only the DOI - no personal information is transmitted.
+
 ## Clipboard Support
 
 Clipboard functionality works automatically on:
@@ -244,6 +287,14 @@ Abbreviations are case-insensitive. Contributions to expand the database are wel
 
 ## Changelog
 
+### Version 2.2.0
+- **Get Paper feature**: Two options for paper access:
+  - "📄 Open Access" - Download free PDFs via Unpaywall
+  - "🏛️ Journal" - Open publisher page for institutional access
+- Modular codebase: Shared logic in `bibtexer_core.py`
+- External `journal_abbreviations.json` with 400+ entries across all disciplines
+- CLI: Added `--oa` and `--journal` flags, plus `--version`/`--help` options
+
 ### Version 2.1.0
 - Added automated builds for all platforms via GitHub Actions
 - Pre-built installers now available for Windows, macOS (Intel & Apple Silicon), and Linux
@@ -272,7 +323,7 @@ If you use BibTexer in your research, please cite it as:
   author = {Bitzek, Erik},
   title = {BibTexer: DOI and Reference to BibTeX Converter},
   year = {2026},
-  version = {2.1.0},
+  version = {2.2.0},
   url = {https://github.com/biterik/BibTexer},
   note = {Part of the MatWerk Scholar Toolbox, developed within NFDI-MatWerk}
 }
