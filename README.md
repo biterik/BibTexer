@@ -1,13 +1,13 @@
 # BibTexer
 
-A cross-platform tool that converts DOIs and reference citations to complete BibTeX entries using the CrossRef API.
+A cross-platform tool to convert DOIs and references to BibTeX entries, and download papers via Open Access or institutional access.
 
 **Part of the [MatWerk Scholar Toolbox](https://nfdi-matwerk.de/) - Developed within [NFDI-MatWerk](https://nfdi-matwerk.de/)**
 
 ![BibTexer GUI](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-blue)
 ![License](https://img.shields.io/badge/License-AGPL--3.0-green)
 ![Python](https://img.shields.io/badge/Python-3.6%2B-yellow)
-![Version](https://img.shields.io/badge/Version-2.2.0-brightgreen)
+![Version](https://img.shields.io/badge/Version-2.2.1-brightgreen)
 [![NFDI-MatWerk](https://img.shields.io/badge/NFDI-MatWerk-orange)](https://nfdi-matwerk.de/)
 
 ## Features
@@ -288,13 +288,14 @@ Abbreviations are case-insensitive. Contributions to expand the database are wel
 
 ## Changelog
 
-### Version 2.2.0
+### Version 2.2.1
 - **Get Paper feature**: Two options for paper access:
   - "📄 Open Access" - Download free PDFs via Unpaywall
   - "🏛️ Journal" - Open publisher page for institutional access
 - Modular codebase: Shared logic in `bibtexer_core.py`
 - External `journal_abbreviations.json` with 400+ entries across all disciplines
 - CLI: Added `--oa` and `--journal` flags, plus `--version`/`--help` options
+- Improved window sizing and button layout
 
 ### Version 2.1.0
 - Added automated builds for all platforms via GitHub Actions
@@ -324,7 +325,7 @@ If you use BibTexer in your research, please cite it as:
   author = {Bitzek, Erik},
   title = {BibTexer: DOI and Reference to BibTeX Converter},
   year = {2026},
-  version = {2.2.0},
+  version = {2.2.1},
   url = {https://github.com/biterik/BibTexer},
   note = {Part of the MatWerk Scholar Toolbox, developed within NFDI-MatWerk}
 }

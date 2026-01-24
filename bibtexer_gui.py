@@ -181,7 +181,7 @@ class BibTexerApp(ctk.CTk):
         
         self.subtitle_label = ctk.CTkLabel(
             self.main_frame, 
-            text="Convert references to BibTeX using CrossRef API",
+            text="Convert references to BibTeX • Download papers via Open Access or Journal",
             font=ctk.CTkFont(size=12)
         )
         self.subtitle_label.pack(pady=(0, 5))
