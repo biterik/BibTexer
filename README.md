@@ -55,7 +55,12 @@ Download the latest release for your platform from the [Releases page](https://g
 #### macOS Installation Notes
 1. Download and unzip the `.app.zip` file
 2. Move `BibTexer.app` to your Applications folder
-3. On first launch, right-click → "Open" to bypass Gatekeeper (since the app is not notarized)
+3. On first launch, macOS will block the app (it's not notarized). To open it:
+   - Try to open the app (it will show a warning)
+   - Go to **System Settings → Privacy & Security**
+   - Scroll down to find "BibTexer was blocked"
+   - Click **"Open Anyway"**
+   - Click **"Open"** in the confirmation dialog
 
 ### From Source
 
