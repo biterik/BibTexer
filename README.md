@@ -7,7 +7,7 @@ A cross-platform tool to convert DOIs and references to BibTeX entries, and down
 ![BibTexer GUI](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-blue)
 ![License](https://img.shields.io/badge/License-AGPL--3.0-green)
 ![Python](https://img.shields.io/badge/Python-3.6%2B-yellow)
-![Version](https://img.shields.io/badge/Version-3.0.0-brightgreen)
+![Version](https://img.shields.io/badge/Version-3.0.1-brightgreen)
 [![NFDI-MatWerk](https://img.shields.io/badge/NFDI-MatWerk-orange)](https://nfdi-matwerk.de/)
 
 ## Features
@@ -47,9 +47,10 @@ Download the latest release for your platform from the [Releases page](https://g
 | Platform | Download | Notes |
 |----------|----------|-------|
 | **Windows** | `BibTexer-Windows-x86_64.exe` | Double-click to run |
-| **macOS (Apple Silicon)** | `BibTexer-macOS-AppleSilicon.app.zip` | For M1/M2/M3 Macs |
-| **macOS (Intel)** | `BibTexer-macOS-Intel.app.zip` | For older Intel Macs |
+| **macOS** | `BibTexer-macOS.app.zip` | For Apple Silicon (M1/M2/M3) Macs |
 | **Linux** | `BibTexer-Linux-x86_64` | Make executable: `chmod +x BibTexer-Linux-x86_64` |
+
+> **Intel Mac users**: Run from source with `python bibtexer_gui.py` (see below)
 
 #### macOS Installation Notes
 1. Download and unzip the `.app.zip` file
@@ -288,6 +289,10 @@ Abbreviations are case-insensitive. Contributions to expand the database are wel
 
 ## Changelog
 
+### Version 3.0.1
+- Fixed GitHub Actions workflow (macOS-13 runner retired)
+- Simplified to macOS Apple Silicon builds (Intel users: run from source)
+
 ### Version 3.0.0
 - **Paper Download**: Two options for accessing papers:
   - "📄 Open Access" - Download free PDFs via Unpaywall (arXiv, bioRxiv, repositories)
@@ -325,7 +330,7 @@ If you use BibTexer in your research, please cite it as:
   author = {Bitzek, Erik},
   title = {BibTexer: DOI and Reference to BibTeX Converter},
   year = {2026},
-  version = {3.0.0},
+  version = {3.0.1},
   url = {https://github.com/biterik/BibTexer},
   note = {Part of the MatWerk Scholar Toolbox, developed within NFDI-MatWerk}
 }

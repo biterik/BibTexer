@@ -15,12 +15,9 @@ jobs:
           - os: ubuntu-latest
             artifact_name: BibTexer
             asset_name: BibTexer-Linux-x86_64
-          - os: macos-13  # Intel Mac
+          - os: macos-latest  # Apple Silicon (M1/M2/M3)
             artifact_name: BibTexer.app
-            asset_name: BibTexer-macOS-Intel.app
-          - os: macos-14  # Apple Silicon (M1/M2)
-            artifact_name: BibTexer.app
-            asset_name: BibTexer-macOS-AppleSilicon.app
+            asset_name: BibTexer-macOS.app
           - os: windows-latest
             artifact_name: BibTexer.exe
             asset_name: BibTexer-Windows-x86_64.exe
