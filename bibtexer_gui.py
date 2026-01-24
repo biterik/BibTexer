@@ -156,8 +156,8 @@ class BibTexerApp(ctk.CTk):
         
         # Configure window
         self.title(f"BibTexer v{__version__} - DOI to BibTeX Converter")
-        self.geometry("750x650")
-        self.minsize(600, 500)
+        self.geometry("850x700")
+        self.minsize(750, 600)
         
         # Set appearance
         ctk.set_appearance_mode("system")
@@ -235,16 +235,17 @@ class BibTexerApp(ctk.CTk):
         
         # Button frame (shared)
         self.button_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
-        self.button_frame.pack(fill="x", padx=10, pady=(5, 10))
+        self.button_frame.pack(fill="x", padx=15, pady=(10, 15))
         
         self.copy_button = ctk.CTkButton(
             self.button_frame, 
-            text="Copy to Clipboard",
+            text="📋 Copy BibTeX",
             command=self.copy_to_clipboard,
             height=35,
+            width=130,
             font=ctk.CTkFont(size=13)
         )
-        self.copy_button.pack(side="left", padx=(0, 10))
+        self.copy_button.pack(side="left", padx=(0, 8))
         
         self.oa_button = ctk.CTkButton(
             self.button_frame, 
@@ -253,9 +254,9 @@ class BibTexerApp(ctk.CTk):
             height=35,
             font=ctk.CTkFont(size=13),
             fg_color="#28a745",
-            width=120
+            width=130
         )
-        self.oa_button.pack(side="left", padx=(0, 5))
+        self.oa_button.pack(side="left", padx=(0, 8))
         
         self.journal_button = ctk.CTkButton(
             self.button_frame, 
@@ -264,19 +265,20 @@ class BibTexerApp(ctk.CTk):
             height=35,
             font=ctk.CTkFont(size=13),
             fg_color="#0066cc",
-            width=100
+            width=110
         )
-        self.journal_button.pack(side="left", padx=(0, 10))
+        self.journal_button.pack(side="left", padx=(0, 8))
         
         self.clear_button = ctk.CTkButton(
             self.button_frame, 
             text="Clear",
             command=self.clear_all,
             height=35,
+            width=80,
             fg_color="gray",
             font=ctk.CTkFont(size=13)
         )
-        self.clear_button.pack(side="left")
+        self.clear_button.pack(side="left", padx=(0, 15))
         
         # Theme toggle
         self.theme_switch = ctk.CTkSwitch(

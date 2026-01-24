@@ -36,6 +36,7 @@ Search CrossRef using partial reference information:
 - 🎨 Modern interface with dark/light mode
 - 💻 Cross-platform: Windows, macOS, and Linux
 - 📑 Tabbed interface for DOI lookup and reference search
+- 🖱️ One-click paper access: Open Access (Unpaywall) or Journal (institutional)
 
 ## Installation
 

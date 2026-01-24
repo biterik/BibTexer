@@ -6,7 +6,7 @@ Part of the MatWerk Scholar Toolbox - Developed within NFDI-MatWerk (https://nfd
 Copyright (c) 2026 Erik Bitzek
 """
 
-__version__ = "2.1.0"
+__version__ = "2.2.0"
 __author__ = "Erik Bitzek"
 __project__ = "MatWerk Scholar Toolbox"
 
@@ -580,3 +580,210 @@ def copy_to_clipboard_tk(text: str, root) -> bool:
         return True
     except Exception:
         return copy_to_clipboard(text)
+
+
+# ============== Paper Download & Open ==============
+
+def get_downloads_folder() -> str:
+    """Get the standard Downloads folder for the current platform."""
+    if platform.system() == 'Windows':
+        import winreg
+        try:
+            with winreg.OpenKey(winreg.HKEY_CURRENT_USER, 
+                               r'SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders') as key:
+                return winreg.QueryValueEx(key, '{374DE290-123F-4565-9164-39C4925E467B}')[0]
+        except Exception:
+            return os.path.join(os.path.expanduser('~'), 'Downloads')
+    else:
+        return os.path.join(os.path.expanduser('~'), 'Downloads')
+
+
+def get_unpaywall_pdf_url(doi: str, email: str = "bibtexer@example.com") -> Optional[str]:
+    """
+    Query Unpaywall API to find open access PDF URL for a DOI.
+    
+    Unpaywall is a free service that finds legal open access versions of papers.
+    Returns the PDF URL if found, None otherwise.
+    """
+    url = f"https://api.unpaywall.org/v2/{urllib.parse.quote(doi, safe='')}?email={email}"
+    
+    req = urllib.request.Request(url)
+    req.add_header('User-Agent', f'BibTexer/{__version__}')
+    
+    try:
+        with urllib.request.urlopen(req, timeout=15) as response:
+            data = json.loads(response.read().decode('utf-8'))
+            
+            # Check for best open access location
+            best_oa = data.get('best_oa_location')
+            if best_oa:
+                pdf_url = best_oa.get('url_for_pdf')
+                if pdf_url:
+                    return pdf_url
+                # Fallback to landing page URL
+                return best_oa.get('url')
+            
+            # Check all OA locations
+            oa_locations = data.get('oa_locations', [])
+            for loc in oa_locations:
+                pdf_url = loc.get('url_for_pdf')
+                if pdf_url:
+                    return pdf_url
+            
+            return None
+    except Exception:
+        return None
+
+
+def download_pdf(url: str, doi: str, output_dir: Optional[str] = None) -> Optional[str]:
+    """
+    Download a PDF from URL to the specified directory.
+    
+    Returns the path to the downloaded file, or None if failed.
+    """
+    if output_dir is None:
+        output_dir = get_downloads_folder()
+    
+    # Create a safe filename from DOI
+    safe_doi = re.sub(r'[^\w\-.]', '_', doi)
+    filename = f"{safe_doi}.pdf"
+    filepath = os.path.join(output_dir, filename)
+    
+    req = urllib.request.Request(url)
+    req.add_header('User-Agent', f'BibTexer/{__version__}')
+    req.add_header('Accept', 'application/pdf,*/*')
+    
+    try:
+        with urllib.request.urlopen(req, timeout=60) as response:
+            content_type = response.headers.get('Content-Type', '')
+            
+            # Check if we got a PDF
+            if 'pdf' not in content_type.lower() and not url.endswith('.pdf'):
+                # Might be a redirect to HTML page, not a direct PDF
+                return None
+            
+            with open(filepath, 'wb') as f:
+                f.write(response.read())
+            
+            # Verify it's actually a PDF (check magic bytes)
+            with open(filepath, 'rb') as f:
+                header = f.read(5)
+                if header != b'%PDF-':
+                    os.remove(filepath)
+                    return None
+            
+            return filepath
+    except Exception:
+        # Clean up partial download
+        if os.path.exists(filepath):
+            try:
+                os.remove(filepath)
+            except Exception:
+                pass
+        return None
+
+
+def open_file(filepath: str) -> bool:
+    """Open a file with the system's default application."""
+    try:
+        if platform.system() == 'Darwin':  # macOS
+            subprocess.run(['open', filepath], check=True)
+        elif platform.system() == 'Windows':
+            os.startfile(filepath)
+        else:  # Linux
+            subprocess.run(['xdg-open', filepath], check=True)
+        return True
+    except Exception:
+        return False
+
+
+def open_url(url: str) -> bool:
+    """Open a URL in the system's default browser."""
+    try:
+        if platform.system() == 'Darwin':  # macOS
+            subprocess.run(['open', url], check=True)
+        elif platform.system() == 'Windows':
+            os.startfile(url)
+        else:  # Linux
+            subprocess.run(['xdg-open', url], check=True)
+        return True
+    except Exception:
+        return False
+
+
+def get_doi_url(doi: str) -> str:
+    """Get the standard DOI URL for a given DOI."""
+    return f"https://doi.org/{doi}"
+
+
+def try_download_paper(doi: str, output_dir: Optional[str] = None) -> Dict[str, any]:
+    """
+    Try to download a paper given its DOI.
+    
+    Returns a dict with:
+        - success: bool - whether download succeeded
+        - filepath: str or None - path to downloaded file
+        - pdf_url: str or None - URL where PDF was found
+        - doi_url: str - fallback DOI URL for browser
+        - message: str - human-readable status message
+    """
+    result = {
+        'success': False,
+        'filepath': None,
+        'pdf_url': None,
+        'doi_url': get_doi_url(doi),
+        'message': ''
+    }
+    
+    # Try to find open access PDF via Unpaywall
+    pdf_url = get_unpaywall_pdf_url(doi)
+    
+    if pdf_url:
+        result['pdf_url'] = pdf_url
+        
+        # Try to download
+        filepath = download_pdf(pdf_url, doi, output_dir)
+        
+        if filepath:
+            result['success'] = True
+            result['filepath'] = filepath
+            result['message'] = f"Downloaded to {filepath}"
+        else:
+            result['message'] = "Found open access version but couldn't download PDF directly"
+    else:
+        result['message'] = "No open access version found"
+    
+    return result
+
+
+def download_or_open_paper(doi: str, output_dir: Optional[str] = None, 
+                           open_pdf: bool = True, fallback_browser: bool = True) -> Dict[str, any]:
+    """
+    Try to download paper, open it if successful, or fall back to browser.
+    
+    Args:
+        doi: The DOI of the paper
+        output_dir: Directory to save PDF (default: Downloads folder)
+        open_pdf: Whether to open the PDF after download
+        fallback_browser: Whether to open browser if download fails
+    
+    Returns dict with status information.
+    """
+    result = try_download_paper(doi, output_dir)
+    
+    if result['success'] and result['filepath']:
+        if open_pdf:
+            if open_file(result['filepath']):
+                result['message'] += " and opened"
+            else:
+                result['message'] += " (couldn't open automatically)"
+    elif fallback_browser:
+        # Use the found PDF URL if available, otherwise DOI URL
+        url_to_open = result.get('pdf_url') or result['doi_url']
+        if open_url(url_to_open):
+            result['opened_url'] = url_to_open
+            result['message'] += f" - opened {url_to_open} in browser"
+        else:
+            result['message'] += f" - couldn't open browser"
+    
+    return result
