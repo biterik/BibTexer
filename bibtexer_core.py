@@ -6,7 +6,7 @@ Part of the MatWerk Scholar Toolbox - Developed within NFDI-MatWerk (https://nfd
 Copyright (c) 2026 Erik Bitzek
 """
 
-__version__ = "2.2.1"
+__version__ = "3.0.0"
 __author__ = "Erik Bitzek"
 __project__ = "MatWerk Scholar Toolbox"
 
