@@ -7,7 +7,7 @@ A cross-platform tool that converts DOIs and reference citations to complete Bib
 ![BibTexer GUI](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-blue)
 ![License](https://img.shields.io/badge/License-AGPL--3.0-green)
 ![Python](https://img.shields.io/badge/Python-3.6%2B-yellow)
-![Version](https://img.shields.io/badge/Version-2.0.0-brightgreen)
+![Version](https://img.shields.io/badge/Version-2.1.0-brightgreen)
 [![NFDI-MatWerk](https://img.shields.io/badge/NFDI-MatWerk-orange)](https://nfdi-matwerk.de/)
 
 ## Features
@@ -37,7 +37,25 @@ Search CrossRef using partial reference information:
 
 ## Installation
 
+### Download Pre-built Installers (Recommended)
+
+Download the latest release for your platform from the [Releases page](https://github.com/biterik/BibTexer/releases/latest):
+
+| Platform | Download | Notes |
+|----------|----------|-------|
+| **Windows** | `BibTexer-Windows-x86_64.exe` | Double-click to run |
+| **macOS (Apple Silicon)** | `BibTexer-macOS-AppleSilicon.app.zip` | For M1/M2/M3 Macs |
+| **macOS (Intel)** | `BibTexer-macOS-Intel.app.zip` | For older Intel Macs |
+| **Linux** | `BibTexer-Linux-x86_64` | Make executable: `chmod +x BibTexer-Linux-x86_64` |
+
+#### macOS Installation Notes
+1. Download and unzip the `.app.zip` file
+2. Move `BibTexer.app` to your Applications folder
+3. On first launch, right-click → "Open" to bypass Gatekeeper (since the app is not notarized)
+
 ### From Source
+
+If you prefer to run from source or want to contribute:
 
 ```bash
 # Clone the repository
@@ -47,17 +65,23 @@ cd BibTexer
 # Install dependencies (for GUI)
 pip install -r requirements.txt
 
-# Make CLI executable (Unix/macOS)
-chmod +x doi2bib.py
+# Run the GUI
+python bibtexer_gui.py
+
+# Or use the CLI
+chmod +x doi2bib.py  # Unix/macOS only
+./doi2bib.py <doi>
 ```
 
-### Requirements
+### Requirements (Source Installation)
 - Python 3.6+
-- customtkinter (GUI only, installed via requirements.txt)
+- customtkinter (installed via requirements.txt)
 
 ## Usage
 
 ### GUI Application
+
+Launch BibTexer from your Applications folder, Start Menu, or run:
 
 ```bash
 python bibtexer_gui.py
@@ -124,7 +148,9 @@ Enter number to select (or 'q' to quit): 0
 }
 ```
 
-## Building Standalone Executables
+## Building from Source
+
+If you want to build your own executables:
 
 ### macOS
 ```bash
@@ -177,11 +203,19 @@ BibTexer/
 ├── build_macos.sh     # macOS build script
 ├── build_windows.bat  # Windows build script
 ├── build_linux.sh     # Linux build script
+├── .github/
+│   └── workflows/
+│       └── build-release.yml  # Automated release builds
 ├── LICENSE            # AGPL-3.0 license
 └── README.md          # This file
 ```
 
 ## Changelog
+
+### Version 2.1.0
+- Added automated builds for all platforms via GitHub Actions
+- Pre-built installers now available for Windows, macOS (Intel & Apple Silicon), and Linux
+- No Python installation required for end users
 
 ### Version 2.0.0
 - Added Reference Search feature - search by author, title, journal without DOI
@@ -206,7 +240,7 @@ If you use BibTexer in your research, please cite it as:
   author = {Bitzek, Erik},
   title = {BibTexer: DOI and Reference to BibTeX Converter},
   year = {2026},
-  version = {2.0.0},
+  version = {2.1.0},
   url = {https://github.com/biterik/BibTexer},
   note = {Part of the MatWerk Scholar Toolbox, developed within NFDI-MatWerk}
 }
