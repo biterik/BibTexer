@@ -6,7 +6,7 @@ Part of the MatWerk Scholar Toolbox - Developed within NFDI-MatWerk (https://nfd
 Copyright (c) 2026 Erik Bitzek
 """
 
-__version__ = "3.0.1"
+__version__ = "4.0.0"
 __author__ = "Erik Bitzek"
 __project__ = "MatWerk Scholar Toolbox"
 
@@ -19,7 +19,8 @@ import urllib.error
 import json
 import re
 import unicodedata
-from typing import Optional, Dict, List
+import socket
+from typing import Optional, Dict, List, Tuple
 
 
 # ============== Journal Abbreviations Database ==============
@@ -366,6 +367,347 @@ def convert_to_bibtex(data: Dict) -> str:
     bibtex += "}"
     
     return bibtex
+
+
+# ============== RIS Conversion (NEW in v4.0) ==============
+
+def get_ris_type(data: Dict) -> str:
+    """Determine RIS type from CrossRef type."""
+    crossref_type = data.get('type', 'journal-article')
+    
+    type_mapping = {
+        'journal-article': 'JOUR',
+        'proceedings-article': 'CONF',
+        'book-chapter': 'CHAP',
+        'book': 'BOOK',
+        'edited-book': 'EDBOOK',
+        'monograph': 'BOOK',
+        'report': 'RPRT',
+        'dissertation': 'THES',
+        'dataset': 'DATA',
+        'posted-content': 'GEN',
+        'reference-entry': 'GEN',
+    }
+    
+    return type_mapping.get(crossref_type, 'JOUR')
+
+
+def convert_to_ris(data: Dict) -> str:
+    """
+    Convert CrossRef metadata to RIS format.
+    
+    RIS is a standardized tag format for bibliographic data.
+    Widely supported by Zotero, EndNote, Mendeley, Papers, etc.
+    """
+    lines = []
+    
+    # Type of reference
+    lines.append(f"TY  - {get_ris_type(data)}")
+    
+    # Title
+    if 'title' in data and data['title']:
+        title = data['title'][0] if isinstance(data['title'], list) else data['title']
+        # Remove any HTML tags
+        title = re.sub(r'<[^>]+>', '', title)
+        lines.append(f"TI  - {title}")
+    
+    # Authors (each author on separate AU line)
+    if 'author' in data:
+        for author in data['author']:
+            family = author.get('family', '')
+            given = author.get('given', '')
+            if family and given:
+                lines.append(f"AU  - {family}, {given}")
+            elif family:
+                lines.append(f"AU  - {family}")
+            elif given:
+                lines.append(f"AU  - {given}")
+    
+    # Editors
+    if 'editor' in data:
+        for editor in data['editor']:
+            family = editor.get('family', '')
+            given = editor.get('given', '')
+            if family and given:
+                lines.append(f"ED  - {family}, {given}")
+            elif family:
+                lines.append(f"ED  - {family}")
+    
+    # Publication year
+    year = get_year(data)
+    if year:
+        lines.append(f"PY  - {year}")
+    
+    # Full date if available
+    for date_field in ['published-print', 'published-online', 'issued']:
+        if date_field in data and 'date-parts' in data[date_field]:
+            date_parts = data[date_field]['date-parts']
+            if date_parts and date_parts[0]:
+                parts = date_parts[0]
+                if len(parts) >= 3:
+                    lines.append(f"DA  - {parts[0]}/{parts[1]:02d}/{parts[2]:02d}")
+                elif len(parts) >= 2:
+                    lines.append(f"DA  - {parts[0]}/{parts[1]:02d}")
+                break
+    
+    # Journal/Container title
+    if 'container-title' in data and data['container-title']:
+        container = data['container-title'][0] if isinstance(data['container-title'], list) else data['container-title']
+        if get_ris_type(data) == 'JOUR':
+            lines.append(f"JO  - {container}")
+            # Also add abbreviated journal title if different
+            lines.append(f"T2  - {container}")
+        else:
+            lines.append(f"T2  - {container}")
+    
+    # Volume
+    if 'volume' in data and data['volume']:
+        lines.append(f"VL  - {data['volume']}")
+    
+    # Issue
+    if 'issue' in data and data['issue']:
+        lines.append(f"IS  - {data['issue']}")
+    
+    # Pages
+    if 'page' in data and data['page']:
+        pages = data['page']
+        if '-' in pages:
+            parts = re.split(r'[-–—]', pages)
+            if len(parts) >= 2:
+                lines.append(f"SP  - {parts[0].strip()}")
+                lines.append(f"EP  - {parts[1].strip()}")
+        else:
+            lines.append(f"SP  - {pages}")
+    
+    # DOI
+    if 'DOI' in data:
+        lines.append(f"DO  - {data['DOI']}")
+    
+    # URL
+    if 'URL' in data:
+        lines.append(f"UR  - {data['URL']}")
+    
+    # Publisher
+    if 'publisher' in data and data['publisher']:
+        lines.append(f"PB  - {data['publisher']}")
+    
+    # ISSN
+    if 'ISSN' in data and data['ISSN']:
+        issn = data['ISSN'][0] if isinstance(data['ISSN'], list) else data['ISSN']
+        lines.append(f"SN  - {issn}")
+    
+    # ISBN
+    if 'ISBN' in data and data['ISBN']:
+        isbn = data['ISBN'][0] if isinstance(data['ISBN'], list) else data['ISBN']
+        lines.append(f"SN  - {isbn}")
+    
+    # Abstract
+    if 'abstract' in data and data['abstract']:
+        abstract = re.sub(r'<[^>]+>', '', data['abstract'])
+        lines.append(f"AB  - {abstract}")
+    
+    # Language
+    if 'language' in data and data['language']:
+        lines.append(f"LA  - {data['language']}")
+    
+    # Keywords/subjects
+    if 'subject' in data and data['subject']:
+        for subject in data['subject']:
+            lines.append(f"KW  - {subject}")
+    
+    # End of record
+    lines.append("ER  - ")
+    
+    return '\n'.join(lines)
+
+
+# ============== Zotero Integration (NEW in v4.0) ==============
+
+ZOTERO_CONNECTOR_PORT = 23119
+ZOTERO_CONNECTOR_URL = f"http://127.0.0.1:{ZOTERO_CONNECTOR_PORT}"
+
+
+def is_zotero_running() -> bool:
+    """
+    Check if Zotero is running by testing the local connector port.
+    
+    Zotero runs a local web server on port 23119 for browser connector integration.
+    """
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(1)
+        result = sock.connect_ex(('127.0.0.1', ZOTERO_CONNECTOR_PORT))
+        sock.close()
+        return result == 0
+    except Exception:
+        return False
+
+
+def convert_to_csl_json(data: Dict) -> Dict:
+    """
+    Convert CrossRef metadata to CSL-JSON format.
+    
+    CSL-JSON is the format used by Zotero and other citation managers.
+    CrossRef data is already close to CSL-JSON, but needs some adjustments.
+    """
+    csl = {}
+    
+    # Type mapping
+    crossref_type = data.get('type', 'journal-article')
+    type_mapping = {
+        'journal-article': 'article-journal',
+        'proceedings-article': 'paper-conference',
+        'book-chapter': 'chapter',
+        'book': 'book',
+        'edited-book': 'book',
+        'monograph': 'book',
+        'report': 'report',
+        'dissertation': 'thesis',
+        'dataset': 'dataset',
+        'posted-content': 'article',
+        'reference-entry': 'entry',
+    }
+    csl['type'] = type_mapping.get(crossref_type, 'article-journal')
+    
+    # Title
+    if 'title' in data and data['title']:
+        title = data['title'][0] if isinstance(data['title'], list) else data['title']
+        csl['title'] = re.sub(r'<[^>]+>', '', title)
+    
+    # Authors
+    if 'author' in data:
+        csl['author'] = []
+        for author in data['author']:
+            author_obj = {}
+            if 'family' in author:
+                author_obj['family'] = author['family']
+            if 'given' in author:
+                author_obj['given'] = author['given']
+            if author_obj:
+                csl['author'].append(author_obj)
+    
+    # Editors
+    if 'editor' in data:
+        csl['editor'] = []
+        for editor in data['editor']:
+            editor_obj = {}
+            if 'family' in editor:
+                editor_obj['family'] = editor['family']
+            if 'given' in editor:
+                editor_obj['given'] = editor['given']
+            if editor_obj:
+                csl['editor'].append(editor_obj)
+    
+    # Date
+    for date_field in ['published-print', 'published-online', 'issued', 'created']:
+        if date_field in data and 'date-parts' in data[date_field]:
+            date_parts = data[date_field]['date-parts']
+            if date_parts and date_parts[0]:
+                csl['issued'] = {'date-parts': date_parts}
+                break
+    
+    # Container/Journal title
+    if 'container-title' in data and data['container-title']:
+        container = data['container-title'][0] if isinstance(data['container-title'], list) else data['container-title']
+        csl['container-title'] = container
+    
+    # Volume, issue, page
+    if 'volume' in data:
+        csl['volume'] = data['volume']
+    if 'issue' in data:
+        csl['issue'] = data['issue']
+    if 'page' in data:
+        csl['page'] = data['page']
+    
+    # DOI and URL
+    if 'DOI' in data:
+        csl['DOI'] = data['DOI']
+    if 'URL' in data:
+        csl['URL'] = data['URL']
+    
+    # Publisher
+    if 'publisher' in data:
+        csl['publisher'] = data['publisher']
+    
+    # ISSN
+    if 'ISSN' in data and data['ISSN']:
+        issn = data['ISSN'][0] if isinstance(data['ISSN'], list) else data['ISSN']
+        csl['ISSN'] = issn
+    
+    # ISBN
+    if 'ISBN' in data and data['ISBN']:
+        isbn = data['ISBN'][0] if isinstance(data['ISBN'], list) else data['ISBN']
+        csl['ISBN'] = isbn
+    
+    # Abstract
+    if 'abstract' in data and data['abstract']:
+        csl['abstract'] = re.sub(r'<[^>]+>', '', data['abstract'])
+    
+    # Language
+    if 'language' in data:
+        csl['language'] = data['language']
+    
+    return csl
+
+
+def send_to_zotero_local(data: Dict) -> Tuple[bool, str]:
+    """
+    Send a reference to local Zotero via the connector API.
+    
+    Uses the import endpoint with BibTeX format, which is most reliable.
+    Zotero must be running for this to work.
+    
+    Args:
+        data: CrossRef metadata dict
+        
+    Returns:
+        Tuple of (success: bool, message: str)
+    """
+    import time
+    
+    if not is_zotero_running():
+        return False, "Zotero is not running. Please open Zotero and try again."
+    
+    # Convert to BibTeX - Zotero handles this format very reliably
+    bibtex_data = convert_to_bibtex(data)
+    
+    url = f"{ZOTERO_CONNECTOR_URL}/connector/import"
+    
+    # Try up to 3 times with small delays (409 = Zotero busy)
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            req = urllib.request.Request(
+                url,
+                data=bibtex_data.encode('utf-8'),
+                headers={
+                    'Content-Type': 'application/x-bibtex',
+                    'User-Agent': f'BibTexer/{__version__}'
+                },
+                method='POST'
+            )
+            
+            with urllib.request.urlopen(req, timeout=10) as response:
+                if response.status in [200, 201]:
+                    return True, "Reference added to Zotero!"
+                else:
+                    return False, f"Import failed: {response.status}"
+                    
+        except urllib.error.HTTPError as e:
+            if e.code == 409 and attempt < max_retries - 1:
+                # Zotero is busy, wait and retry
+                time.sleep(0.5)
+                continue
+            elif e.code == 409:
+                return False, "Zotero is busy. Please wait a moment and try again."
+            else:
+                return False, f"Zotero error: {e.code} - {e.reason}"
+        except urllib.error.URLError as e:
+            return False, f"Connection error: {e.reason}"
+        except Exception as e:
+            return False, f"Import error: {str(e)}"
+    
+    return False, "Could not connect to Zotero after multiple attempts."
 
 
 # ============== Reference Parser ==============

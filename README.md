@@ -1,29 +1,47 @@
 # BibTexer
 
-A cross-platform tool to convert DOIs and references to BibTeX entries, and download papers via Open Access or institutional access.
+A cross-platform tool to convert DOIs and references to BibTeX/RIS entries, download papers via Open Access, and add references directly to Zotero.
 
 **Part of the [MatWerk Scholar Toolbox](https://nfdi-matwerk.de/) - Developed within [NFDI-MatWerk](https://nfdi-matwerk.de/)**
 
 ![BibTexer GUI](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-blue)
 ![License](https://img.shields.io/badge/License-AGPL--3.0-green)
 ![Python](https://img.shields.io/badge/Python-3.6%2B-yellow)
-![Version](https://img.shields.io/badge/Version-3.0.1-brightgreen)
+![Version](https://img.shields.io/badge/Version-4.0.0-brightgreen)
 [![NFDI-MatWerk](https://img.shields.io/badge/NFDI-MatWerk-orange)](https://nfdi-matwerk.de/)
 
 ## Features
 
 ### Core Features
-- 🔍 **DOI Lookup**: Direct conversion from DOI to BibTeX
+- 🔍 **DOI Lookup**: Direct conversion from DOI to BibTeX or RIS
 - 🔎 **Reference Search**: Find papers by author, title, journal, year - no DOI needed!
 - 📄 **Open Access**: Download free PDFs via Unpaywall (arXiv, bioRxiv, repositories)
 - 🏛️ **Journal Access**: Open publisher page for institutional/subscription access
-- 📝 **Complete BibTeX**: Generates properly formatted entries with all metadata
+- 📝 **Multiple Formats**: Output in BibTeX or RIS format
+- 📚 **Zotero Integration**: Add references directly to your local Zotero library
 - 📋 **Clipboard Support**: Automatic copy to clipboard on all platforms
 - ✨ **Smart Entry Types**: Automatically determines @article, @inproceedings, @book, etc.
 - 🔑 **Citation Keys**: Auto-generates keys from first author + year
 - 🛡️ **LaTeX Safe**: Escapes special characters for LaTeX compatibility
 
-### Reference Search (New in v2.0!)
+### New in v4.0!
+
+#### 📚 Direct Zotero Integration
+Add references directly to your local Zotero library with one click:
+- Works with Zotero desktop app (must be running)
+- No API key or account setup required
+- Item appears instantly in your library
+- Uses Zotero's local connector (same as browser extensions)
+
+#### 📋 RIS Format Output
+Export references in RIS format for compatibility with:
+- Zotero (manual import)
+- Mendeley
+- EndNote
+- Papers
+- Any reference manager that supports RIS
+
+### Reference Search
 Search CrossRef using partial reference information:
 - **Author citations**: `G. Thomas and M. J. Whelan, Phil. Mag. 4, 511 (1959)`
 - **Journal references**: `PHYSICAL REVIEW MATERIALS 5, 083603 (2021)`  
@@ -37,6 +55,7 @@ Search CrossRef using partial reference information:
 - 💻 Cross-platform: Windows, macOS, and Linux
 - 📑 Tabbed interface for DOI lookup and reference search
 - 🖱️ One-click paper access: Open Access (Unpaywall) or Journal (institutional)
+- 🔄 Format selector: Switch between BibTeX and RIS output
 
 ## Installation
 
@@ -97,30 +116,50 @@ python bibtexer_gui.py
 ```
 
 The GUI provides two tabs:
-1. **DOI Lookup**: Enter a DOI to get its BibTeX entry
+1. **DOI Lookup**: Enter a DOI to get its BibTeX/RIS entry
 2. **Reference Search**: Enter any citation information to search CrossRef
+
+**Output Format**: Use the radio buttons to switch between BibTeX and RIS output.
+
+**Export Section**: Click "📚 Add to Zotero" to send the reference directly to your Zotero library (Zotero must be running).
 
 ### Command Line
 
 ```bash
-# DOI lookup
+# DOI lookup (BibTeX output, default)
 ./doi2bib.py <doi>
+
+# DOI lookup (RIS output)
+./doi2bib.py --ris <doi>
+
+# Add directly to Zotero
+./doi2bib.py --zotero <doi>
 
 # Reference search
 ./doi2bib.py --search "<reference>"
 
+# Reference search with RIS output
+./doi2bib.py --search "<reference>" --ris
+
 # Download/open paper
-./doi2bib.py --open <doi>
+./doi2bib.py --oa <doi>
+./doi2bib.py --journal <doi>
 ```
 
 #### CLI Examples
 
 ```bash
-# DOI lookup - plain DOI
+# DOI lookup - plain DOI (BibTeX)
 ./doi2bib.py 10.1038/nature12373
 
 # DOI lookup - full URL
 ./doi2bib.py https://doi.org/10.1038/nature12373
+
+# DOI lookup - RIS format
+./doi2bib.py --ris 10.1038/nature12373
+
+# Add to Zotero directly
+./doi2bib.py --zotero 10.1038/nature12373
 
 # Reference search - author citation
 ./doi2bib.py --search "G. Thomas and M. J. Whelan, Phil. Mag. 4, 511 (1959)"
@@ -131,12 +170,15 @@ The GUI provides two tabs:
 # Reference search - title only
 ./doi2bib.py --search "Kinetic Theory of Dislocation Climb"
 
+# Reference search with RIS output
+./doi2bib.py --search "Thomas Whelan 1959" --ris
+
 # Download open access PDF (via Unpaywall)
 ./doi2bib.py --oa 10.1038/nature12373
 
 # Open journal page (for institutional access)
 ./doi2bib.py --journal 10.1038/nature12373
-./doi2bib.py -j 10.1038/nature12373
+./doi2bib.py -j 10.1038/nature12373   # short form
 ```
 
 When searching, if multiple results are found, you'll be prompted to select one:
@@ -148,7 +190,7 @@ Found 5 results:
 Enter number to select (or 'q' to quit): 0
 ```
 
-### Sample Output
+### Sample BibTeX Output
 
 ```bibtex
 @article{kucsko2013,
@@ -166,6 +208,66 @@ Enter number to select (or 'q' to quit): 0
   issn = {0028-0836}
 }
 ```
+
+### Sample RIS Output
+
+```
+TY  - JOUR
+TI  - Nanometre-scale thermometry in a living cell
+AU  - Kucsko, G.
+AU  - Maurer, P. C.
+AU  - Yao, N. Y.
+AU  - Kubo, M.
+AU  - Noh, H. J.
+AU  - Lo, P. K.
+AU  - Park, H.
+AU  - Lukin, M. D.
+PY  - 2013
+DA  - 2013/08/01
+JO  - Nature
+T2  - Nature
+VL  - 500
+IS  - 7460
+SP  - 54
+EP  - 58
+DO  - 10.1038/nature12373
+UR  - https://doi.org/10.1038/nature12373
+PB  - Springer Science and Business Media LLC
+SN  - 0028-0836
+ER  - 
+```
+
+## Zotero Integration
+
+### Direct Add to Zotero (Recommended)
+
+If you have Zotero desktop running, click **"📚 Add to Zotero"** to send the reference directly to your library:
+
+- **No setup required**: Works immediately with Zotero desktop
+- **No API key needed**: Uses Zotero's local connector (port 23119)
+- **Instant results**: Item appears in your library immediately
+- **Works offline**: No internet connection needed (beyond the initial DOI lookup)
+
+**How it works**: BibTexer communicates with Zotero through the same local connector that browser extensions use. Zotero must be open for this to work.
+
+**GUI**: The status indicator shows whether Zotero is detected:
+- `● Zotero detected` - Ready to add references
+- `○ Zotero not running` - Open Zotero first
+
+**CLI**: 
+```bash
+./doi2bib.py --zotero 10.1038/nature12373
+```
+
+### RIS Import (Alternative)
+
+For manual import or other reference managers:
+
+1. Select **RIS** format using the radio buttons
+2. Click **📋 Copy** to copy the RIS data
+3. In Zotero: **File → Import from Clipboard**
+
+Or save as a `.ris` file and import via **File → Import**.
 
 ## Building from Source
 
@@ -195,15 +297,15 @@ chmod +x build_linux.sh
 
 BibTexer automatically detects and converts the following CrossRef types:
 
-| CrossRef Type | BibTeX Type |
-|---------------|-------------|
-| journal-article | @article |
-| proceedings-article | @inproceedings |
-| book-chapter | @incollection |
-| book, edited-book, monograph | @book |
-| report | @techreport |
-| dissertation | @phdthesis |
-| dataset, posted-content | @misc |
+| CrossRef Type | BibTeX Type | RIS Type |
+|---------------|-------------|----------|
+| journal-article | @article | JOUR |
+| proceedings-article | @inproceedings | CONF |
+| book-chapter | @incollection | CHAP |
+| book, edited-book, monograph | @book | BOOK |
+| report | @techreport | RPRT |
+| dissertation | @phdthesis | THES |
+| dataset, posted-content | @misc | GEN/DATA |
 
 ## Get Paper Feature
 
@@ -247,7 +349,7 @@ Clipboard functionality works automatically on:
 
 ```
 BibTexer/
-├── bibtexer_core.py          # Core library (API, parsing, conversion)
+├── bibtexer_core.py          # Core library (API, parsing, conversion, Zotero)
 ├── bibtexer_gui.py           # GUI application (imports from core)
 ├── doi2bib.py                # Command-line tool (imports from core)
 ├── journal_abbreviations.json # Journal abbreviations database (400+ entries)
@@ -262,7 +364,7 @@ BibTexer/
 └── README.md                 # This file
 ```
 
-The codebase follows a modular design where `bibtexer_core.py` contains all shared functionality (CrossRef API, reference parsing, BibTeX conversion), while the GUI and CLI are thin frontend layers.
+The codebase follows a modular design where `bibtexer_core.py` contains all shared functionality (CrossRef API, reference parsing, BibTeX/RIS conversion, Zotero integration), while the GUI and CLI are thin frontend layers.
 
 ## Journal Abbreviations
 
@@ -293,6 +395,20 @@ The abbreviations are stored in `journal_abbreviations.json`. To add custom abbr
 Abbreviations are case-insensitive. Contributions to expand the database are welcome!
 
 ## Changelog
+
+### Version 4.0.0
+- **Zotero Integration**: Add references directly to local Zotero with one click
+  - Uses Zotero's local connector (port 23119)
+  - No API key or setup required
+  - Works when Zotero desktop is running
+  - GUI shows Zotero detection status
+  - CLI: `--zotero` / `-z` flag
+- **RIS Format Support**: Export references in RIS format
+  - Compatible with Zotero, Mendeley, EndNote, Papers
+  - GUI: Radio button format selector (BibTeX / RIS)
+  - CLI: `--ris` flag (combinable with `--search`)
+- **New Export Section**: Dedicated area in GUI for export options
+- **Improved Architecture**: Added CSL-JSON conversion for Zotero compatibility
 
 ### Version 3.0.1
 - Fixed GitHub Actions workflow (macOS-13 runner retired)
@@ -333,9 +449,9 @@ If you use BibTexer in your research, please cite it as:
 ```bibtex
 @software{bitzek2026bibtexer,
   author = {Bitzek, Erik},
-  title = {BibTexer: DOI and Reference to BibTeX Converter},
+  title = {BibTexer: DOI and Reference to BibTeX/RIS Converter with Zotero Integration},
   year = {2026},
-  version = {3.0.1},
+  version = {4.0.0},
   url = {https://github.com/biterik/BibTexer},
   note = {Part of the MatWerk Scholar Toolbox, developed within NFDI-MatWerk}
 }
