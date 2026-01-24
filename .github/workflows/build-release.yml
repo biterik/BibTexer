@@ -1,0 +1,113 @@
+# .github/workflows/build-release.yml
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'  # Trigger on version tags like v2.0.0
+  workflow_dispatch:  # Manual trigger option
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact_name: BibTexer
+            asset_name: BibTexer-Linux-x86_64
+          - os: macos-13  # Intel Mac
+            artifact_name: BibTexer.app
+            asset_name: BibTexer-macOS-Intel.app
+          - os: macos-14  # Apple Silicon (M1/M2)
+            artifact_name: BibTexer.app
+            asset_name: BibTexer-macOS-AppleSilicon.app
+          - os: windows-latest
+            artifact_name: BibTexer.exe
+            asset_name: BibTexer-Windows-x86_64.exe
+
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      
+      - name: Install dependencies
+        run: pip install customtkinter pyinstaller
+      
+      - name: Get customtkinter path (Unix)
+        if: runner.os != 'Windows'
+        id: ctk_unix
+        run: |
+          CTK_PATH=$(python -c "import customtkinter; print(customtkinter.__path__[0])")
+          echo "path=$CTK_PATH" >> $GITHUB_OUTPUT
+      
+      - name: Get customtkinter path (Windows)
+        if: runner.os == 'Windows'
+        id: ctk_win
+        shell: pwsh
+        run: |
+          $CTK_PATH = python -c "import customtkinter; print(customtkinter.__path__[0])"
+          echo "path=$CTK_PATH" >> $env:GITHUB_OUTPUT
+      
+      - name: Build with PyInstaller (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          pyinstaller --onefile --windowed --name "BibTexer" \
+            --add-data "${{ steps.ctk_unix.outputs.path }}:customtkinter" \
+            bibtexer_gui.py
+      
+      - name: Build with PyInstaller (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          pyinstaller --onefile --windowed --name "BibTexer" `
+            --add-data "${{ steps.ctk_win.outputs.path }};customtkinter" `
+            bibtexer_gui.py
+      
+      - name: Prepare macOS app for upload
+        if: runner.os == 'macOS'
+        run: |
+          cd dist
+          zip -r "${{ matrix.asset_name }}.zip" BibTexer.app
+      
+      - name: Upload artifact (macOS)
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset_name }}
+          path: dist/${{ matrix.asset_name }}.zip
+      
+      - name: Upload artifact (Linux/Windows)
+        if: runner.os != 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset_name }}
+          path: dist/${{ matrix.artifact_name }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      
+      - name: Display structure of downloaded files
+        run: ls -R artifacts
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            artifacts/**/*
+          generate_release_notes: true
+          draft: false
