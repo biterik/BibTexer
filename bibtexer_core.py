@@ -119,7 +119,7 @@ def get_crossref_data(doi: str) -> Dict:
     req.add_header('Accept', 'application/json')
     
     try:
-        with urllib.request.urlopen(req, timeout=30) as response:
+        with urllib.request.urlopen(req, timeout=30, context=ssl_context) as response:
             data = json.loads(response.read().decode('utf-8'))
             return data['message']
     except urllib.error.HTTPError as e:
@@ -176,7 +176,7 @@ def search_crossref(
     req.add_header('Accept', 'application/json')
     
     try:
-        with urllib.request.urlopen(req, timeout=30) as response:
+        with urllib.request.urlopen(req, timeout=30, context=ssl_context) as response:
             data = json.loads(response.read().decode('utf-8'))
             return data['message'].get('items', [])
     except Exception as e:
@@ -694,7 +694,7 @@ def send_to_zotero_local(data: Dict) -> Tuple[bool, str]:
                 method='POST'
             )
             
-            with urllib.request.urlopen(req, timeout=10) as response:
+            with urllib.request.urlopen(req, timeout=10, context=ssl_context) as response:
                 if response.status in [200, 201]:
                     return True, "Reference added to Zotero!"
                 else:
@@ -984,7 +984,7 @@ def get_unpaywall_pdf_url(doi: str, email: str = "bibtexer@example.com") -> Opti
     req.add_header('User-Agent', f'BibTexer/{__version__}')
     
     try:
-        with urllib.request.urlopen(req, timeout=15) as response:
+        with urllib.request.urlopen(req, timeout=15, context=ssl_context) as response:
             data = json.loads(response.read().decode('utf-8'))
             
             # Check for best open access location
@@ -1027,7 +1027,7 @@ def download_pdf(url: str, doi: str, output_dir: Optional[str] = None) -> Option
     req.add_header('Accept', 'application/pdf,*/*')
     
     try:
-        with urllib.request.urlopen(req, timeout=60) as response:
+        with urllib.request.urlopen(req, timeout=60, context=ssl_context) as response:
             content_type = response.headers.get('Content-Type', '')
             
             # Check if we got a PDF
