@@ -254,11 +254,17 @@ class BibTexerApp(ctk.CTk):
         )
         self.ris_radio.pack(side="left")
         
-        self.output_text = ctk.CTkTextbox(
+        # Output text area - use tk.Text for reliability in bundled apps
+        text_bg = "#2b2b2b" if ctk.get_appearance_mode() == "Dark" else "#ffffff"
+        text_fg = "#ffffff" if ctk.get_appearance_mode() == "Dark" else "#000000"
+        self.output_text = tk.Text(
             self.output_frame, 
-            font=ctk.CTkFont(family="Courier", size=12),
+            font=("Courier", 12),
             wrap="word",
-            height=200
+            height=12,
+            bg=text_bg,
+            fg=text_fg,
+            insertbackground=text_fg
         )
         self.output_text.pack(fill="x", padx=10, pady=(0, 10))
         
@@ -479,12 +485,15 @@ class BibTexerApp(ctk.CTk):
             self._update_output(self.current_bibtex)
         else:
             self._update_output(self.current_ris)
+        self.update()  # Force full update
     
     def toggle_theme(self):
         if self.theme_switch.get():
             ctk.set_appearance_mode("dark")
+            self.output_text.configure(bg="#2b2b2b", fg="#ffffff", insertbackground="#ffffff")
         else:
             ctk.set_appearance_mode("light")
+            self.output_text.configure(bg="#ffffff", fg="#000000", insertbackground="#000000")
     
     def convert_doi(self):
         doi = self.doi_entry.get().strip()
@@ -507,22 +516,33 @@ class BibTexerApp(ctk.CTk):
             bibtex = convert_to_bibtex(data)
             ris = convert_to_ris(data)
             
+            # Store data
             self.current_bibtex = bibtex
             self.current_ris = ris
             self.current_doi = data.get('DOI', doi)
-            self.current_crossref_data = data  # Store for Zotero
+            self.current_crossref_data = data
             
-            self.after(0, self._update_output_display)
-            self.after(0, lambda: self.set_status("✓ Successfully converted!", "success"))
-            self.after(0, self._check_zotero_status)
+            # Schedule UI updates on main thread
+            def update_ui():
+                self._update_output_display()
+                self.set_status("✓ Successfully converted!", "success")
+                self._check_zotero_status()
+                self.convert_button.configure(state="normal", text="Convert")
+            
+            self.after(0, update_ui)
+            
         except ValueError as e:
-            self.after(0, lambda: self.set_status(f"Error: {e}", "error"))
-            self.after(0, lambda: self._update_output(""))
+            def show_error():
+                self.set_status(f"Error: {e}", "error")
+                self._update_output("")
+                self.convert_button.configure(state="normal", text="Convert")
+            self.after(0, show_error)
         except Exception as e:
-            self.after(0, lambda: self.set_status(f"Unexpected error: {e}", "error"))
-            self.after(0, lambda: self._update_output(""))
-        finally:
-            self.after(0, lambda: self.convert_button.configure(state="normal", text="Convert"))
+            def show_error():
+                self.set_status(f"Unexpected error: {e}", "error")
+                self._update_output("")
+                self.convert_button.configure(state="normal", text="Convert")
+            self.after(0, show_error)
     
     def search_reference(self):
         """Search for a reference using parsed information."""
@@ -647,6 +667,8 @@ class BibTexerApp(ctk.CTk):
     def _update_output(self, text):
         self.output_text.delete("1.0", "end")
         self.output_text.insert("1.0", text)
+        self.output_text.update()  # Force UI update
+        self.update_idletasks()  # Process pending events
     
     def set_status(self, message, status_type="info"):
         colors = {

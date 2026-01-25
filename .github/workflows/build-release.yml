@@ -31,10 +31,11 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.11'  # Use 3.11 for better tkinter compatibility
       
       - name: Install dependencies
-        run: pip install customtkinter pyinstaller
+        run: |
+          pip install customtkinter==5.2.2 pyinstaller==6.3.0
       
       - name: Get customtkinter path (Unix)
         if: runner.os != 'Windows'
@@ -58,6 +59,8 @@ jobs:
             --add-data "${{ steps.ctk_unix.outputs.path }}:customtkinter" \
             --add-data "journal_abbreviations.json:." \
             --hidden-import bibtexer_core \
+            --hidden-import tkinter \
+            --hidden-import tkinter.ttk \
             bibtexer_gui.py
       
       - name: Build with PyInstaller (Windows)
@@ -67,6 +70,8 @@ jobs:
             --add-data "${{ steps.ctk_win.outputs.path }};customtkinter" `
             --add-data "journal_abbreviations.json;." `
             --hidden-import bibtexer_core `
+            --hidden-import tkinter `
+            --hidden-import tkinter.ttk `
             bibtexer_gui.py
       
       - name: Prepare macOS app for upload
