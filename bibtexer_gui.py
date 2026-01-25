@@ -52,9 +52,17 @@ class SearchResultsDialog(ctk.CTkToplevel):
         self.geometry("850x500")
         self.minsize(600, 400)
         
-        # Make modal
+        # Make modal and ensure visibility (fixes PyInstaller/macOS issues)
         self.transient(parent)
-        self.grab_set()
+        
+        # Force window to appear on macOS PyInstaller builds
+        self.lift()
+        self.focus_force()
+        self.attributes('-topmost', True)
+        self.after(100, lambda: self.attributes('-topmost', False))
+        
+        # Grab input after window is mapped
+        self.after(150, self._setup_grab)
         
         # Title
         title_label = ctk.CTkLabel(
@@ -148,11 +156,29 @@ class SearchResultsDialog(ctk.CTkToplevel):
         
         self.selected_index = None
         
-        # Center on parent
-        self.update_idletasks()
-        x = parent.winfo_x() + (parent.winfo_width() - self.winfo_width()) // 2
-        y = parent.winfo_y() + (parent.winfo_height() - self.winfo_height()) // 2
-        self.geometry(f"+{x}+{y}")
+        # Center on parent after window is ready
+        self.after(50, self._center_on_parent)
+    
+    def _center_on_parent(self):
+        """Center dialog on parent window."""
+        try:
+            self.update_idletasks()
+            parent = self.master
+            x = parent.winfo_x() + (parent.winfo_width() - self.winfo_width()) // 2
+            y = parent.winfo_y() + (parent.winfo_height() - self.winfo_height()) // 2
+            # Ensure window is on screen
+            x = max(0, x)
+            y = max(0, y)
+            self.geometry(f"+{x}+{y}")
+        except Exception:
+            pass  # Use default position if centering fails
+    
+    def _setup_grab(self):
+        """Setup grab after window is fully visible."""
+        try:
+            self.grab_set()
+        except Exception:
+            pass  # Ignore grab errors
     
     def _on_frame_configure(self, event):
         """Update scroll region when frame size changes."""
@@ -677,7 +703,15 @@ class BibTexerApp(ctk.CTk):
         """Show the search results dialog."""
         self.set_status(f"Found {len(results)} matches - please select one", "info")
         
+        # Small delay to ensure main window is ready (fixes PyInstaller issues)
+        self.update_idletasks()
+        
         dialog = SearchResultsDialog(self, results)
+        
+        # Ensure dialog is visible
+        dialog.update()
+        dialog.deiconify()
+        
         self.wait_window(dialog)
         
         if dialog.selected_item:
