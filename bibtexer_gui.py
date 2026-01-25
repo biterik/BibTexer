@@ -39,8 +39,8 @@ from bibtexer_core import (
 )
 
 
-class SearchResultsFrame(ctk.CTkFrame):
-    """Frame to display search results inline (replaces popup dialog)."""
+class SearchResultsDialog(tk.Toplevel):
+    """Dialog to display and select from search results."""
     
     def __init__(self, parent, results: List[Dict], callback):
         super().__init__(parent)
@@ -48,57 +48,78 @@ class SearchResultsFrame(ctk.CTkFrame):
         self.results = results
         self.selected_item = None
         self.selected_index = None
-        self.callback = callback  # Called when selection is made or cancelled
+        self.callback = callback
+        
+        # Basic window setup
+        self.title("Select Reference")
+        self.geometry("900x550")
+        self.minsize(700, 400)
+        
+        # Set background color based on appearance mode
+        bg_color = "#2b2b2b" if ctk.get_appearance_mode() == "Dark" else "#f0f0f0"
+        self.configure(bg=bg_color)
+        
+        # Make modal
+        self.transient(parent)
+        
+        # Main container frame
+        main_frame = ctk.CTkFrame(self)
+        main_frame.pack(fill="both", expand=True, padx=10, pady=10)
         
         # Title
-        title_frame = ctk.CTkFrame(self, fg_color="transparent")
-        title_frame.pack(fill="x", padx=10, pady=(10, 5))
-        
         title_label = ctk.CTkLabel(
-            title_frame,
-            text=f"Found {len(results)} matching references - select one:",
-            font=ctk.CTkFont(size=14, weight="bold")
+            main_frame,
+            text=f"Found {len(results)} matching references",
+            font=ctk.CTkFont(size=16, weight="bold")
         )
-        title_label.pack(side="left")
+        title_label.pack(pady=(10, 5))
         
-        cancel_button = ctk.CTkButton(
-            title_frame,
-            text="✕ Cancel",
-            command=self.cancel,
-            width=80,
-            height=28,
-            fg_color="gray",
+        instruction_label = ctk.CTkLabel(
+            main_frame,
+            text="Click to select, then 'Use Selected' or double-click to confirm",
             font=ctk.CTkFont(size=12)
         )
-        cancel_button.pack(side="right")
+        instruction_label.pack(pady=(0, 10))
         
-        # Scrollable results list
-        self.scrollable_frame = ctk.CTkScrollableFrame(self, height=200)
-        self.scrollable_frame.pack(fill="both", expand=True, padx=10, pady=5)
+        # Results list with canvas for scrolling
+        list_frame = ctk.CTkFrame(main_frame)
+        list_frame.pack(fill="both", expand=True, padx=5, pady=5)
         
-        # Create result items
-        self.result_buttons = []
+        # Canvas with scrollbars
+        canvas_bg = "#333333" if ctk.get_appearance_mode() == "Dark" else "#e8e8e8"
+        self.canvas = tk.Canvas(list_frame, highlightthickness=0, bg=canvas_bg)
+        
+        # Scrollbars
+        v_scrollbar = ctk.CTkScrollbar(list_frame, orientation="vertical", command=self.canvas.yview)
+        v_scrollbar.pack(side="right", fill="y")
+        
+        h_scrollbar = ctk.CTkScrollbar(list_frame, orientation="horizontal", command=self.canvas.xview)
+        h_scrollbar.pack(side="bottom", fill="x")
+        
+        self.canvas.pack(side="left", fill="both", expand=True)
+        self.canvas.configure(yscrollcommand=v_scrollbar.set, xscrollcommand=h_scrollbar.set)
+        
+        # Inner frame for content
+        self.inner_frame = ctk.CTkFrame(self.canvas, fg_color="transparent")
+        self.canvas_window = self.canvas.create_window((0, 0), window=self.inner_frame, anchor="nw")
+        
+        # Create result items with multi-line format
+        self.result_frames = []
         for i, item in enumerate(results):
-            formatted = format_search_result_long(item)
-            
-            btn = ctk.CTkButton(
-                self.scrollable_frame,
-                text=formatted,
-                anchor="w",
-                font=ctk.CTkFont(size=11),
-                fg_color="transparent",
-                text_color=("gray10", "gray90"),
-                hover_color=("gray80", "gray30"),
-                height=45,
-                command=lambda idx=i: self.select_result(idx)
-            )
-            btn.pack(fill="x", padx=5, pady=2)
-            btn.bind("<Double-Button-1>", lambda e, idx=i: self.confirm_selection(idx))
-            self.result_buttons.append(btn)
+            result_frame = self._create_result_item(i, item)
+            self.result_frames.append(result_frame)
         
-        # Use Selected button
-        button_frame = ctk.CTkFrame(self, fg_color="transparent")
-        button_frame.pack(fill="x", padx=10, pady=(5, 10))
+        # Update scroll region
+        self.inner_frame.bind("<Configure>", self._on_frame_configure)
+        self.canvas.bind("<Configure>", self._on_canvas_configure)
+        
+        # Mouse wheel scrolling
+        self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
+        self.canvas.bind_all("<Shift-MouseWheel>", self._on_shift_mousewheel)
+        
+        # Button frame
+        button_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+        button_frame.pack(fill="x", padx=5, pady=10)
         
         self.use_button = ctk.CTkButton(
             button_frame,
@@ -107,31 +128,181 @@ class SearchResultsFrame(ctk.CTkFrame):
             state="disabled",
             font=ctk.CTkFont(size=13)
         )
-        self.use_button.pack(side="left")
+        self.use_button.pack(side="left", padx=(0, 10))
+        
+        cancel_button = ctk.CTkButton(
+            button_frame,
+            text="Cancel",
+            command=self.cancel,
+            fg_color="gray",
+            font=ctk.CTkFont(size=13)
+        )
+        cancel_button.pack(side="left")
+        
+        # Handle window close
+        self.protocol("WM_DELETE_WINDOW", self.cancel)
+        
+        # Center and show
+        self.after(50, self._finalize_window)
+    
+    def _create_result_item(self, index: int, item: Dict) -> ctk.CTkFrame:
+        """Create a multi-line result item."""
+        frame = ctk.CTkFrame(
+            self.inner_frame,
+            fg_color="transparent",
+            corner_radius=5
+        )
+        frame.pack(fill="x", padx=5, pady=3)
+        
+        # Extract info
+        title = item.get('title', ['No title'])[0] if isinstance(item.get('title'), list) else item.get('title', 'No title')
+        
+        authors = item.get('author', [])
+        if authors:
+            author_names = []
+            for a in authors[:3]:
+                name = f"{a.get('family', '')}, {a.get('given', '')}"
+                author_names.append(name.strip(', '))
+            author_str = "; ".join(author_names)
+            if len(authors) > 3:
+                author_str += f" et al. ({len(authors)} authors)"
+        else:
+            author_str = "Unknown authors"
+        
+        year = ""
+        if 'published-print' in item:
+            year = str(item['published-print'].get('date-parts', [['']])[0][0])
+        elif 'published-online' in item:
+            year = str(item['published-online'].get('date-parts', [['']])[0][0])
+        elif 'issued' in item:
+            year = str(item['issued'].get('date-parts', [['']])[0][0])
+        
+        journal = item.get('container-title', [''])[0] if isinstance(item.get('container-title'), list) else item.get('container-title', '')
+        doi = item.get('DOI', '')
+        
+        # Line 1: Title (bold)
+        title_label = ctk.CTkLabel(
+            frame,
+            text=f"{index + 1}. {title}",
+            font=ctk.CTkFont(size=12, weight="bold"),
+            anchor="w",
+            wraplength=800
+        )
+        title_label.pack(fill="x", padx=10, pady=(5, 0))
+        
+        # Line 2: Authors
+        author_label = ctk.CTkLabel(
+            frame,
+            text=f"    {author_str}",
+            font=ctk.CTkFont(size=11),
+            anchor="w",
+            text_color=("gray30", "gray70")
+        )
+        author_label.pack(fill="x", padx=10, pady=0)
+        
+        # Line 3: Journal, Year, DOI
+        meta_parts = []
+        if journal:
+            meta_parts.append(journal)
+        if year:
+            meta_parts.append(f"({year})")
+        if doi:
+            meta_parts.append(f"DOI: {doi}")
+        
+        meta_label = ctk.CTkLabel(
+            frame,
+            text=f"    {' • '.join(meta_parts)}",
+            font=ctk.CTkFont(size=10),
+            anchor="w",
+            text_color=("gray40", "gray60")
+        )
+        meta_label.pack(fill="x", padx=10, pady=(0, 5))
+        
+        # Make entire frame clickable
+        for widget in [frame, title_label, author_label, meta_label]:
+            widget.bind("<Button-1>", lambda e, idx=index: self.select_result(idx))
+            widget.bind("<Double-Button-1>", lambda e, idx=index: self.confirm_selection(idx))
+        
+        return frame
+    
+    def _finalize_window(self):
+        """Center and show window."""
+        try:
+            self.update_idletasks()
+            
+            # Center on parent
+            parent = self.master
+            x = parent.winfo_x() + (parent.winfo_width() - self.winfo_width()) // 2
+            y = parent.winfo_y() + (parent.winfo_height() - self.winfo_height()) // 2
+            x = max(0, x)
+            y = max(0, y)
+            self.geometry(f"+{x}+{y}")
+            
+            # Show window
+            self.deiconify()
+            self.lift()
+            self.focus_force()
+            
+            # Set grab
+            self.after(100, self._setup_grab)
+        except Exception:
+            pass
+    
+    def _setup_grab(self):
+        """Setup modal grab."""
+        try:
+            self.grab_set()
+        except Exception:
+            pass
+    
+    def _on_frame_configure(self, event):
+        """Update scroll region."""
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+    
+    def _on_canvas_configure(self, event):
+        """Adjust inner frame width."""
+        canvas_width = event.width
+        frame_width = self.inner_frame.winfo_reqwidth()
+        if canvas_width > frame_width:
+            self.canvas.itemconfig(self.canvas_window, width=canvas_width)
+    
+    def _on_mousewheel(self, event):
+        """Vertical scroll."""
+        self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+    
+    def _on_shift_mousewheel(self, event):
+        """Horizontal scroll."""
+        self.canvas.xview_scroll(int(-1 * (event.delta / 120)), "units")
     
     def select_result(self, index: int):
         """Highlight selected result."""
-        for btn in self.result_buttons:
-            btn.configure(fg_color="transparent")
-        self.result_buttons[index].configure(fg_color=("gray70", "gray40"))
+        for i, frame in enumerate(self.result_frames):
+            if i == index:
+                frame.configure(fg_color=("gray75", "gray35"))
+            else:
+                frame.configure(fg_color="transparent")
         self.selected_index = index
         self.use_button.configure(state="normal")
     
     def confirm_selection(self, index: int):
-        """Confirm selection on double-click."""
+        """Confirm on double-click."""
         self.selected_index = index
         self.use_selected()
     
     def use_selected(self):
-        """Use the selected result."""
+        """Use selected result."""
         if self.selected_index is not None:
             self.selected_item = self.results[self.selected_index]
+            # Unbind events
+            self.canvas.unbind_all("<MouseWheel>")
+            self.canvas.unbind_all("<Shift-MouseWheel>")
             self.callback(self.selected_item)
             self.destroy()
     
     def cancel(self):
-        """Cancel the selection."""
-        self.selected_item = None
+        """Cancel selection."""
+        self.canvas.unbind_all("<MouseWheel>")
+        self.canvas.unbind_all("<Shift-MouseWheel>")
         self.callback(None)
         self.destroy()
 
@@ -619,30 +790,14 @@ class BibTexerApp(ctk.CTk):
         self._check_zotero_status()
     
     def _show_search_results(self, results: List[Dict]):
-        """Show the search results in an embedded frame."""
+        """Show the search results in a popup dialog."""
         self.set_status(f"Found {len(results)} matches - please select one", "info")
         
-        # Hide the output frame temporarily and show results frame
-        self.output_frame.pack_forget()
-        
-        # Create the results frame
-        self.results_frame = SearchResultsFrame(
-            self.main_frame, 
-            results, 
-            callback=self._on_search_result_selected
-        )
-        self.results_frame.pack(fill="both", expand=True, padx=10, pady=5)
+        # Create dialog
+        dialog = SearchResultsDialog(self, results, callback=self._on_search_result_selected)
     
     def _on_search_result_selected(self, selected_item):
         """Handle search result selection."""
-        # Remove results frame
-        if hasattr(self, 'results_frame') and self.results_frame:
-            self.results_frame.destroy()
-            self.results_frame = None
-        
-        # Show output frame again
-        self.output_frame.pack(fill="x", padx=10, pady=5)
-        
         if selected_item:
             bibtex = convert_to_bibtex(selected_item)
             ris = convert_to_ris(selected_item)
