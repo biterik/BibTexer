@@ -27,3 +27,4 @@ Thumbs.db
 # PyInstaller
 *.manifest
 *.log
+CHECKPOINT*.md
