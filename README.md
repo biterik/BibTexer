@@ -7,7 +7,7 @@ A cross-platform tool to convert DOIs and references to BibTeX/RIS entries, down
 ![BibTexer GUI](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-blue)
 ![License](https://img.shields.io/badge/License-AGPL--3.0-green)
 ![Python](https://img.shields.io/badge/Python-3.6%2B-yellow)
-![Version](https://img.shields.io/badge/Version-4.0.0-brightgreen)
+![Version](https://img.shields.io/badge/Version-4.1.0-brightgreen)
 [![NFDI-MatWerk](https://img.shields.io/badge/NFDI-MatWerk-orange)](https://nfdi-matwerk.de/)
 
 ## Features
@@ -395,6 +395,18 @@ The abbreviations are stored in `journal_abbreviations.json`. To add custom abbr
 Abbreviations are case-insensitive. Contributions to expand the database are welcome!
 
 ## Changelog
+
+### Version 4.1.0
+- **SSL Certificate Fix**: Fixed `CERTIFICATE_VERIFY_FAILED` errors in bundled apps
+- **Improved Reference Parsing**:
+  - Better title extraction for "(Year) Title. Journal" format
+  - Whitespace normalization (handles line breaks in pasted references)
+  - Added "Nat Commun" and other abbreviations without periods
+  - Author parsing for "Ji B, Gao H" format (surname + initial)
+- **Journal Matching Fix**: Word boundary matching prevents false matches (e.g., "structure" inside "nanostructure")
+- **Search Results Dialog**: Multi-line format showing title, authors, and metadata
+- **Default Tab**: Reference Search is now the default tab
+- **Reliable Output**: Uses standard tk.Text widget for bundled app compatibility
 
 ### Version 4.0.0
 - **Zotero Integration**: Add references directly to local Zotero with one click
