@@ -39,7 +39,7 @@ from bibtexer_core import (
 )
 
 
-class SearchResultsDialog(ctk.CTkToplevel):
+class SearchResultsDialog(tk.Toplevel):
     """Dialog to display and select from search results."""
     
     def __init__(self, parent, results: List[Dict]):
@@ -47,46 +47,46 @@ class SearchResultsDialog(ctk.CTkToplevel):
         
         self.results = results
         self.selected_item = None
+        self.selected_index = None
         
+        # Basic window setup
         self.title("Select Reference")
         self.geometry("850x500")
         self.minsize(600, 400)
         
-        # Make modal and ensure visibility (fixes PyInstaller/macOS issues)
+        # Set background color based on appearance mode
+        bg_color = "#2b2b2b" if ctk.get_appearance_mode() == "Dark" else "#f0f0f0"
+        self.configure(bg=bg_color)
+        
+        # Make modal
         self.transient(parent)
         
-        # Force window to appear on macOS PyInstaller builds
-        self.lift()
-        self.focus_force()
-        self.attributes('-topmost', True)
-        self.after(100, lambda: self.attributes('-topmost', False))
-        
-        # Grab input after window is mapped
-        self.after(150, self._setup_grab)
+        # Main container frame using CTk for consistent styling
+        main_frame = ctk.CTkFrame(self)
+        main_frame.pack(fill="both", expand=True, padx=10, pady=10)
         
         # Title
         title_label = ctk.CTkLabel(
-            self,
+            main_frame,
             text=f"Found {len(results)} matching references",
             font=ctk.CTkFont(size=16, weight="bold")
         )
         title_label.pack(pady=(15, 10))
         
         instruction_label = ctk.CTkLabel(
-            self,
+            main_frame,
             text="Double-click or select and click 'Use Selected' to choose a reference",
             font=ctk.CTkFont(size=12)
         )
         instruction_label.pack(pady=(0, 10))
         
         # Results list frame with both scrollbars
-        list_frame = ctk.CTkFrame(self)
-        list_frame.pack(fill="both", expand=True, padx=15, pady=5)
+        list_frame = ctk.CTkFrame(main_frame)
+        list_frame.pack(fill="both", expand=True, padx=5, pady=5)
         
         # Create canvas with scrollbars for both directions
-        # Get background color based on appearance mode
-        bg_color = "#2b2b2b" if ctk.get_appearance_mode() == "Dark" else "#dbdbdb"
-        self.canvas = tk.Canvas(list_frame, highlightthickness=0, bg=bg_color)
+        canvas_bg = "#333333" if ctk.get_appearance_mode() == "Dark" else "#e0e0e0"
+        self.canvas = tk.Canvas(list_frame, highlightthickness=0, bg=canvas_bg)
         
         # Vertical scrollbar
         v_scrollbar = ctk.CTkScrollbar(list_frame, orientation="vertical", command=self.canvas.yview)
@@ -133,8 +133,8 @@ class SearchResultsDialog(ctk.CTkToplevel):
         self.canvas.bind_all("<Shift-MouseWheel>", self._on_shift_mousewheel)
         
         # Button frame
-        button_frame = ctk.CTkFrame(self, fg_color="transparent")
-        button_frame.pack(fill="x", padx=15, pady=15)
+        button_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+        button_frame.pack(fill="x", padx=5, pady=15)
         
         self.use_button = ctk.CTkButton(
             button_frame,
@@ -154,32 +154,42 @@ class SearchResultsDialog(ctk.CTkToplevel):
         )
         cancel_button.pack(side="left")
         
-        self.selected_index = None
+        # Handle window close button
+        self.protocol("WM_DELETE_WINDOW", self.cancel)
         
-        # Center on parent after window is ready
-        self.after(50, self._center_on_parent)
+        # Center and show window after a short delay
+        self.after(50, self._finalize_window)
     
-    def _center_on_parent(self):
-        """Center dialog on parent window."""
+    def _finalize_window(self):
+        """Finalize window setup - center, focus, and grab."""
         try:
             self.update_idletasks()
+            
+            # Center on parent
             parent = self.master
             x = parent.winfo_x() + (parent.winfo_width() - self.winfo_width()) // 2
             y = parent.winfo_y() + (parent.winfo_height() - self.winfo_height()) // 2
-            # Ensure window is on screen
             x = max(0, x)
             y = max(0, y)
             self.geometry(f"+{x}+{y}")
+            
+            # Force visibility
+            self.deiconify()
+            self.lift()
+            self.focus_force()
+            
+            # Set grab after everything else
+            self.after(100, self._setup_grab)
         except Exception:
-            pass  # Use default position if centering fails
+            pass
     
     def _setup_grab(self):
         """Setup grab after window is fully visible."""
         try:
             self.grab_set()
         except Exception:
-            pass  # Ignore grab errors
-    
+            pass
+
     def _on_frame_configure(self, event):
         """Update scroll region when frame size changes."""
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
