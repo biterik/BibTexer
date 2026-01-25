@@ -20,7 +20,12 @@ import json
 import re
 import unicodedata
 import socket
+import ssl
+import certifi
 from typing import Optional, Dict, List, Tuple
+
+# Fix SSL certificates for PyInstaller bundles
+ssl_context = ssl.create_default_context(cafile=certifi.where())
 
 
 # ============== Journal Abbreviations Database ==============

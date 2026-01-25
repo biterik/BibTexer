@@ -35,7 +35,7 @@ jobs:
       
       - name: Install dependencies
         run: |
-          pip install customtkinter==5.2.2 pyinstaller==6.3.0
+          pip install customtkinter==5.2.2 pyinstaller==6.3.0 certifi
       
       - name: Get customtkinter path (Unix)
         if: runner.os != 'Windows'
@@ -61,6 +61,8 @@ jobs:
             --hidden-import bibtexer_core \
             --hidden-import tkinter \
             --hidden-import tkinter.ttk \
+            --hidden-import certifi \
+            --collect-data certifi \
             bibtexer_gui.py
       
       - name: Build with PyInstaller (Windows)
@@ -72,6 +74,8 @@ jobs:
             --hidden-import bibtexer_core `
             --hidden-import tkinter `
             --hidden-import tkinter.ttk `
+            --hidden-import certifi `
+            --collect-data certifi `
             bibtexer_gui.py
       
       - name: Prepare macOS app for upload

@@ -577,12 +577,9 @@ class BibTexerApp(ctk.CTk):
         
         self.search_button.configure(state="disabled", text="Searching...")
         self.set_status("Searching CrossRef...", "info")
+        self.update()  # Force UI update
         
-        thread = threading.Thread(target=self._perform_search, args=(parsed,))
-        thread.start()
-    
-    def _perform_search(self, parsed: Dict):
-        """Perform the CrossRef search in a background thread."""
+        # Perform search directly (no threading) to debug
         try:
             results = search_crossref(
                 query=parsed['query'] if not parsed['title'] and not parsed['authors'] else None,
@@ -594,21 +591,18 @@ class BibTexerApp(ctk.CTk):
             )
             
             if not results:
-                self.after(0, lambda: self.set_status("No results found", "warning"))
-                self.after(0, lambda: self._update_output(""))
-                return
-            
-            if len(results) == 1:
+                self.set_status("No results found", "warning")
+                self._update_output("")
+            elif len(results) == 1:
                 self._process_selected_result(results[0])
             else:
-                self.after(0, lambda: self._show_search_results(results))
+                self._show_search_results(results)
                 
-        except ValueError as e:
-            self.after(0, lambda: self.set_status(f"Error: {e}", "error"))
         except Exception as e:
-            self.after(0, lambda: self.set_status(f"Unexpected error: {e}", "error"))
+            self.set_status(f"Error: {e}", "error")
+            self._update_output("")
         finally:
-            self.after(0, lambda: self.search_button.configure(state="normal", text="Search CrossRef"))
+            self.search_button.configure(state="normal", text="Search CrossRef")
     
     def _process_selected_result(self, data: Dict):
         """Process a selected search result."""
@@ -620,9 +614,9 @@ class BibTexerApp(ctk.CTk):
         self.current_doi = data.get('DOI')
         self.current_crossref_data = data
         
-        self.after(0, self._update_output_display)
-        self.after(0, lambda: self.set_status("✓ Found 1 matching reference!", "success"))
-        self.after(0, self._check_zotero_status)
+        self._update_output_display()
+        self.set_status("✓ Found 1 matching reference!", "success")
+        self._check_zotero_status()
     
     def _show_search_results(self, results: List[Dict]):
         """Show the search results in an embedded frame."""
