@@ -260,6 +260,9 @@ class BibTexerApp(ctk.CTk):
         self.tab_doi = self.tabview.add("DOI Lookup")
         self.tab_search = self.tabview.add("Reference Search")
         
+        # Set Reference Search as default tab
+        self.tabview.set("Reference Search")
+        
         # Setup tabs
         self._setup_doi_tab()
         self._setup_search_tab()

@@ -63,6 +63,8 @@ def _load_journal_abbreviations() -> dict:
         'lancet': 'The Lancet',
         'cell': 'Cell',
         'proc. natl. acad. sci.': 'Proceedings of the National Academy of Sciences',
+        'j mech phys solids': 'Journal of the Mechanics and Physics of Solids',
+        'j. mech. phys. solids': 'Journal of the Mechanics and Physics of Solids',
     }
 
 
@@ -762,8 +764,15 @@ def parse_reference(text: str) -> Dict[str, Optional[str]]:
     
     # Extract authors
     author_patterns = [
+        # "G. Thomas and M. J. Whelan" - initials before surname
         r'^([A-Z]\.\s*(?:[A-Z]\.\s*)?[A-Za-z]+(?:\s+(?:and|&)\s+[A-Z]\.\s*(?:[A-Z]\.\s*)?[A-Za-z]+)*)',
+        # "Thomas, G." or "Thomas, G. and Whelan, M. J."
         r'^([A-Za-z]+,?\s*[A-Z]\.(?:\s*[A-Z]\.)?(?:\s*(?:,|and|&)\s*[A-Za-z]+,?\s*[A-Z]\.(?:\s*[A-Z]\.)?)*)',
+        # "Ji B, Gao H" - surname + initial without period
+        r'^([A-Z][a-z]+\s+[A-Z](?:,\s*[A-Z][a-z]+\s+[A-Z])*)',
+        # "Smith AB, Jones CD" - surname + initials without periods
+        r'^([A-Z][a-z]+\s+[A-Z]{1,2}(?:,\s*[A-Z][a-z]+\s+[A-Z]{1,2})*)',
+        # "et al."
         r'^([A-Za-z]+\s+et\s+al\.?)',
     ]
     
@@ -778,11 +787,28 @@ def parse_reference(text: str) -> Dict[str, Optional[str]]:
             break
     
     # Check for journal abbreviations
+    # Need to match whole words/phrases, not substrings
     text_lower = text.lower()
+    best_match = None
+    best_match_len = 0
+    
     for abbrev, full_name in JOURNAL_ABBREVIATIONS.items():
-        if text_lower.startswith(abbrev) or abbrev in text_lower:
-            result['journal'] = full_name
-            break
+        if abbrev.startswith('_'):  # Skip comment entries
+            continue
+        # Create pattern that matches whole word/phrase
+        # Escape special regex chars in abbreviation
+        escaped_abbrev = re.escape(abbrev)
+        # Match at word boundaries
+        pattern = r'(?:^|[\s,;:])(' + escaped_abbrev + r')(?:[\s,;:\d]|$)'
+        match = re.search(pattern, text_lower)
+        if match:
+            # Prefer longer matches (more specific)
+            if len(abbrev) > best_match_len:
+                best_match = full_name
+                best_match_len = len(abbrev)
+    
+    if best_match:
+        result['journal'] = best_match
     
     # Check for ALL CAPS journal name
     if not result['journal']:
