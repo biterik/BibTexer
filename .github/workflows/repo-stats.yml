@@ -1,0 +1,21 @@
+name: fetch-repository-stats
+
+concurrency: fetch-repository-stats
+
+on:
+  schedule:
+    # Run once per day at 23:00 UTC to capture the most recent data
+    - cron: "0 23 * * *"
+  workflow_dispatch:
+    # Allow manual triggering
+
+jobs:
+  fetch-stats:
+    name: Fetch BibTexer stats
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run github-repo-stats
+        uses: jgehrcke/github-repo-stats@v1.4.2
+        with:
+          ghtoken: ${{ secrets.GHRS_GITHUB_API_TOKEN }}
+          # repository defaults to current repo (biterik/BibTexer)
