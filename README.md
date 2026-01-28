@@ -475,7 +475,7 @@ BibTexer is part of the **MatWerk Scholar Toolbox** and was developed within **N
 
 [![NFDI-MatWerk](https://nfdi-matwerk.de/)](https://nfdi-matwerk.de/)
 
-This work was funded by the German Research Foundation (DFG) through the NFDI-MatWerk consortium.
+This work is part of the consortium NFDI-MatWerk, funded by the Deutsche Forschungsgemeinschaft (DFG, German Research Foundation) under the National Research Data Infrastructure – NFDI 38/1 – project number 460247524.
 
 ## License
 
