@@ -1,0 +1,275 @@
+{
+  "activity": {
+    "commits_30d": 1,
+    "contributors_total": 1,
+    "issues_closed_30d": 0,
+    "issues_opened_30d": 0,
+    "prs_merged_30d": 1,
+    "prs_opened_30d": 1
+  },
+  "collected_at": "2026-07-09T06:54:57Z",
+  "date": "2026-07-09",
+  "derived": {
+    "clones_last_30d": 3,
+    "clones_last_7d": 2,
+    "downloads_gained_30d": 0,
+    "downloads_total": 10,
+    "funnel_30d": {
+      "downloads_gained": 0,
+      "stars_gained": 0,
+      "unique_cloners": 3,
+      "unique_visitors": 1
+    },
+    "health": {
+      "components": {
+        "activity": 15,
+        "community": 8,
+        "release_adoption": 10,
+        "traffic_trend": 100
+      },
+      "note": "heuristic composite \u2014 weights fixed in v1, configurable later",
+      "score": 47,
+      "weights": {
+        "activity": 0.3,
+        "community": 0.2,
+        "release_adoption": 0.1,
+        "traffic_trend": 0.4
+      }
+    },
+    "history_days": 16,
+    "star_forecast": {
+      "eta_exponential": null,
+      "eta_linear": null,
+      "next_milestone": 10,
+      "stars_per_day": null
+    },
+    "stars_gained_30d": 0,
+    "stars_gained_7d": 0,
+    "stars_now": 1,
+    "views_last_30d": 1,
+    "views_last_7d": 1,
+    "views_prev_7d": 0,
+    "windows": {
+      "30d": {
+        "clones": 3,
+        "downloads_gained": 0,
+        "stars_gained": 0,
+        "unique_visitors": 1,
+        "views": 1
+      },
+      "365d": {
+        "clones": 3,
+        "downloads_gained": 0,
+        "stars_gained": 1,
+        "unique_visitors": 1,
+        "views": 1
+      },
+      "90d": {
+        "clones": 3,
+        "downloads_gained": 0,
+        "stars_gained": 0,
+        "unique_visitors": 1,
+        "views": 1
+      }
+    }
+  },
+  "errors": [],
+  "meta": {
+    "archived": false,
+    "created_at": "2026-01-15T15:25:06Z",
+    "default_branch": "main",
+    "fork": false,
+    "open_issues": 0,
+    "pushed_at": "2026-07-08T15:14:12Z",
+    "size_kb": 247
+  },
+  "popularity": {
+    "forks": 0,
+    "stars": 1,
+    "subscribers": 0,
+    "watchers": 1
+  },
+  "releases": [
+    {
+      "assets": [
+        {
+          "downloads": 1,
+          "name": "BibTexer"
+        },
+        {
+          "downloads": 2,
+          "name": "BibTexer-macOS.app.zip"
+        },
+        {
+          "downloads": 2,
+          "name": "BibTexer.exe"
+        }
+      ],
+      "name": "v4.1.0",
+      "prerelease": false,
+      "published_at": "2026-01-25T22:01:14Z",
+      "tag": "v4.1.0"
+    },
+    {
+      "assets": [
+        {
+          "downloads": 1,
+          "name": "BibTexer"
+        },
+        {
+          "downloads": 2,
+          "name": "BibTexer-macOS.app.zip"
+        },
+        {
+          "downloads": 2,
+          "name": "BibTexer.exe"
+        }
+      ],
+      "name": "v3.0.1",
+      "prerelease": false,
+      "published_at": "2026-01-24T11:24:26Z",
+      "tag": "v3.0.1"
+    },
+    {
+      "assets": [],
+      "name": "BibTexer v2.0.0 - Reference Search Feature",
+      "prerelease": false,
+      "published_at": "2026-01-15T16:04:42Z",
+      "tag": "v2.0.0"
+    }
+  ],
+  "repo": "biterik/BibTexer",
+  "schema_version": 1,
+  "traffic": {
+    "clones": {
+      "2026-06-24": {
+        "count": 0,
+        "uniques": 0
+      },
+      "2026-06-25": {
+        "count": 0,
+        "uniques": 0
+      },
+      "2026-06-26": {
+        "count": 0,
+        "uniques": 0
+      },
+      "2026-06-27": {
+        "count": 1,
+        "uniques": 1
+      },
+      "2026-06-28": {
+        "count": 0,
+        "uniques": 0
+      },
+      "2026-06-29": {
+        "count": 0,
+        "uniques": 0
+      },
+      "2026-06-30": {
+        "count": 0,
+        "uniques": 0
+      },
+      "2026-07-01": {
+        "count": 0,
+        "uniques": 0
+      },
+      "2026-07-02": {
+        "count": 0,
+        "uniques": 0
+      },
+      "2026-07-03": {
+        "count": 1,
+        "uniques": 1
+      },
+      "2026-07-04": {
+        "count": 0,
+        "uniques": 0
+      },
+      "2026-07-05": {
+        "count": 1,
+        "uniques": 1
+      },
+      "2026-07-06": {
+        "count": 0,
+        "uniques": 0
+      },
+      "2026-07-07": {
+        "count": 0,
+        "uniques": 0
+      }
+    },
+    "paths": [
+      {
+        "count": 1,
+        "path": "/biterik/BibTexer",
+        "uniques": 1
+      }
+    ],
+    "referrers": [
+      {
+        "count": 1,
+        "referrer": "chatgpt.com",
+        "uniques": 1
+      }
+    ],
+    "views": {
+      "2026-06-24": {
+        "count": 0,
+        "uniques": 0
+      },
+      "2026-06-25": {
+        "count": 0,
+        "uniques": 0
+      },
+      "2026-06-26": {
+        "count": 0,
+        "uniques": 0
+      },
+      "2026-06-27": {
+        "count": 0,
+        "uniques": 0
+      },
+      "2026-06-28": {
+        "count": 0,
+        "uniques": 0
+      },
+      "2026-06-29": {
+        "count": 0,
+        "uniques": 0
+      },
+      "2026-06-30": {
+        "count": 0,
+        "uniques": 0
+      },
+      "2026-07-01": {
+        "count": 0,
+        "uniques": 0
+      },
+      "2026-07-02": {
+        "count": 0,
+        "uniques": 0
+      },
+      "2026-07-03": {
+        "count": 0,
+        "uniques": 0
+      },
+      "2026-07-04": {
+        "count": 0,
+        "uniques": 0
+      },
+      "2026-07-05": {
+        "count": 1,
+        "uniques": 1
+      },
+      "2026-07-06": {
+        "count": 0,
+        "uniques": 0
+      },
+      "2026-07-07": {
+        "count": 0,
+        "uniques": 0
+      }
+    }
+  }
+}
