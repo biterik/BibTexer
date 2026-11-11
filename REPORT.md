@@ -1,12 +1,12 @@
 # biterik/BibTexer — repo vitals
 
 ![stars](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fbiterik%2FBibTexer%2Fvitals%2Fbadge%2Fstars.json) ![views/week](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fbiterik%2FBibTexer%2Fvitals%2Fbadge%2Fviews-week.json) 
-_Updated 2026-11-10T11:12:49Z (UTC) · machine-readable: [VITALS.json](VITALS.json) · full history: [history.ndjson](history.ndjson) · daily snapshots: [snapshots/](snapshots/)_
+_Updated 2026-11-11T10:57:53Z (UTC) · machine-readable: [VITALS.json](VITALS.json) · full history: [history.ndjson](history.ndjson) · daily snapshots: [snapshots/](snapshots/)_
 
 | | |
 |---|---|
 | Repository created | 2026-01-15 |
-| Tracked by repo-vitals since | 2026-06-24 (140 days)³ |
+| Tracked by repo-vitals since | 2026-06-24 (141 days)³ |
 
 
 ## Summary
@@ -15,7 +15,7 @@ _Updated 2026-11-10T11:12:49Z (UTC) · machine-readable: [VITALS.json](VITALS.js
 |---|---:|---:|---:|
 | Views | 2 | 17 | 18 |
 | Unique visitors¹ | 2 | 13 | 14 |
-| Clones | 233 | 671 | 860 |
+| Clones | 237 | 683 | 874 |
 | Stars gained | 0 | 0 | 1 |
 | Release downloads gained | 2 | 6 | 6 |
 
@@ -23,14 +23,14 @@ _Updated 2026-11-10T11:12:49Z (UTC) · machine-readable: [VITALS.json](VITALS.js
 
 ## Since tracking began
 
-Everything recorded so far, from 2026-06-24 (140 days) — the total, and the same total expressed as an average rate.
+Everything recorded so far, from 2026-06-24 (141 days) — the total, and the same total expressed as an average rate.
 
 | Metric | Total | Average / 30 d |
 |---|---:|---:|
-| Views | 18 | 3.9 |
+| Views | 18 | 3.8 |
 | Unique visitors¹ | 14 | 3.0 |
-| Clones | 860 | 184.3 |
-| Unique cloners¹ | 642 | 137.6 |
+| Clones | 874 | 186.0 |
+| Unique cloners¹ | 651 | 138.5 |
 | Stars gained | 1 | 0.2 |
 | Release downloads gained | 6 | 1.3 |
 
@@ -39,14 +39,14 @@ Averages are the total divided by days tracked, times 30 — not a projection.
 ## Trends — last 30 days
 
 ```
-views  ▁▁▁▁▁▁▁▁▁▁▁▁█▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁█·  (2 total)
-clones ▄▃▅▅▂▁█▅▂▅▅▁▁▅▂▆▂▄▄▁▅▂▁▆▁▅▂▁▂·  (233 total)
+views  ▁▁▁▁▁▁▁▁▁▁▁█▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁█▁·  (2 total)
+clones ▃▅▅▂▁█▅▂▅▅▁▁▅▂▆▂▄▄▁▅▂▁▆▁▅▂▁▂▆·  (237 total)
 ```
 
 ('·' = day without data)
 
 Stars: **1** (+0 in 30 d, +0 in 7 d)
-**Conversion funnel (30 d):** 2 unique visitors → 160 unique cloners → 0 stars gained → 2 downloads gained
+**Conversion funnel (30 d):** 2 unique visitors → 163 unique cloners → 0 stars gained → 2 downloads gained
 
 ## Where visitors come from (14-day window)
 
@@ -87,7 +87,7 @@ Interactive dashboard: [index.html](index.html) on this branch (raw URLs don't
 render HTML — view it via GitHub Pages on the vitals branch, the repo-vitals
 hub, or locally: `git clone -b vitals … && python -m http.server`).
 A copy of this report named with the repo and today's date lives at
-[reports/biterik-BibTexer-2026-11-10.md](reports/biterik-BibTexer-2026-11-10.md)
+[reports/biterik-BibTexer-2026-11-11.md](reports/biterik-BibTexer-2026-11-11.md)
 — safe to download standalone.
 
 <sub>[repo-vitals](https://github.com/biterik/repo-vitals) by Erik Bitzek —
