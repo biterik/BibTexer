@@ -7,27 +7,27 @@
     "prs_merged_30d": 0,
     "prs_opened_30d": 0
   },
-  "collected_at": "2026-11-13T10:59:02Z",
-  "date": "2026-11-13",
+  "collected_at": "2026-11-14T10:26:31Z",
+  "date": "2026-11-14",
   "derived": {
-    "clones_last_30d": 244,
-    "clones_last_7d": 50,
-    "downloads_gained_30d": 1,
-    "downloads_total": 16,
+    "clones_last_30d": 248,
+    "clones_last_7d": 62,
+    "downloads_gained_30d": 2,
+    "downloads_total": 17,
     "funnel_30d": {
-      "downloads_gained": 1,
+      "downloads_gained": 2,
       "stars_gained": 0,
-      "unique_cloners": 166,
-      "unique_visitors": 3
+      "unique_cloners": 169,
+      "unique_visitors": 4
     },
-    "history_days": 144,
+    "history_days": 145,
     "per_30d": {
-      "clones": 188.8,
-      "downloads_gained": 1.3,
+      "clones": 190.8,
+      "downloads_gained": 1.5,
       "stars_gained": 0.2,
-      "unique_cloners": 139.9,
-      "unique_visitors": 3.1,
-      "views": 4.2
+      "unique_cloners": 141.0,
+      "unique_visitors": 3.3,
+      "views": 4.6
     },
     "repo_created_at": "2026-01-15T15:25:06Z",
     "star_forecast": {
@@ -40,39 +40,39 @@
     "stars_gained_7d": 0,
     "stars_now": 1,
     "totals": {
-      "clones": 900,
-      "downloads_gained": 6,
+      "clones": 916,
+      "downloads_gained": 7,
       "stars_gained": 1,
-      "unique_cloners": 667,
-      "unique_visitors": 15,
-      "views": 20
+      "unique_cloners": 677,
+      "unique_visitors": 16,
+      "views": 22
     },
-    "tracking_days": 143,
+    "tracking_days": 144,
     "tracking_since": "2026-06-24",
-    "views_last_30d": 4,
-    "views_last_7d": 3,
+    "views_last_30d": 6,
+    "views_last_7d": 5,
     "views_prev_7d": 0,
     "windows": {
       "30d": {
-        "clones": 244,
-        "downloads_gained": 1,
+        "clones": 248,
+        "downloads_gained": 2,
         "stars_gained": 0,
-        "unique_visitors": 3,
-        "views": 4
+        "unique_visitors": 4,
+        "views": 6
       },
       "365d": {
-        "clones": 900,
-        "downloads_gained": 6,
+        "clones": 916,
+        "downloads_gained": 7,
         "stars_gained": 1,
-        "unique_visitors": 15,
-        "views": 20
+        "unique_visitors": 16,
+        "views": 22
       },
       "90d": {
-        "clones": 703,
+        "clones": 717,
         "downloads_gained": 4,
         "stars_gained": 0,
-        "unique_visitors": 14,
-        "views": 19
+        "unique_visitors": 15,
+        "views": 21
       }
     }
   },
@@ -83,8 +83,8 @@
     "default_branch": "main",
     "fork": false,
     "open_issues": 0,
-    "pushed_at": "2026-11-12T11:11:11Z",
-    "size_kb": 239
+    "pushed_at": "2026-11-13T10:59:05Z",
+    "size_kb": 240
   },
   "popularity": {
     "forks": 0,
@@ -96,7 +96,7 @@
     {
       "assets": [
         {
-          "downloads": 2,
+          "downloads": 3,
           "name": "BibTexer"
         },
         {
@@ -145,10 +145,6 @@
   "schema_version": 1,
   "traffic": {
     "clones": {
-      "2026-10-30": {
-        "count": 10,
-        "uniques": 6
-      },
       "2026-10-31": {
         "count": 3,
         "uniques": 3
@@ -200,21 +196,21 @@
       "2026-11-12": {
         "count": 3,
         "uniques": 3
+      },
+      "2026-11-13": {
+        "count": 16,
+        "uniques": 10
       }
     },
     "paths": [
       {
-        "count": 3,
+        "count": 5,
         "path": "/biterik/BibTexer",
         "uniques": 2
       }
     ],
     "referrers": [],
     "views": {
-      "2026-10-30": {
-        "count": 0,
-        "uniques": 0
-      },
       "2026-10-31": {
         "count": 0,
         "uniques": 0
@@ -264,6 +260,10 @@
         "uniques": 0
       },
       "2026-11-12": {
+        "count": 2,
+        "uniques": 1
+      },
+      "2026-11-13": {
         "count": 2,
         "uniques": 1
       }
